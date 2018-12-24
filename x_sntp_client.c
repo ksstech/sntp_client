@@ -32,9 +32,8 @@
 #include	<string.h>
 #include	<math.h>
 
-// ###################################### DEBUG : CONFIG definitions ###############################
-
 #define	debugFLAG						0x0000
+
 #define	debugPROTOCOL					(debugFLAG * 0x0001)
 #define	debugHOSTS						(debugFLAG * 0x0002)
 #define	debugCALCULATION				(debugFLAG * 0x0004)
@@ -212,7 +211,7 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
  * vSntpTask()
  */
 void	vSntpTask(void * pvPara) {
-	IF_TRACK(debugAPPL_THREADS, messageTASK_START) ;
+	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
 	TickType_t	NtpLWtime = xTaskGetTickCount();			// Get the current time as a reference to start our delays.
 	while (xRtosVerifyState(taskSNTP)) {
 		vRtosWaitStatus(flagNET_L3) ;					// first wait till IP is up and running
@@ -227,7 +226,7 @@ void	vSntpTask(void * pvPara) {
 		}
 		vTaskDelayUntil(&NtpLWtime, pdMS_TO_TICKS(sntpINTERVAL_MS)) ;
 	}
-	IF_TRACK(debugAPPL_THREADS, messageTASK_DELETE) ;
+	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_DN) ;
 	vRtosClearStatus(flagNET_SNTP) ;
 	vTaskDelete(NULL) ;
 }

@@ -35,7 +35,7 @@ extern "C" {
 
 #define	sntpPRIORITY						1
 #define sntpINTERVAL_MS						(60 * SECONDS_IN_MINUTE * MILLIS_IN_SECOND)
-#define	sntpSTACK_SIZE						(configMINIMAL_STACK_SIZE + 1280)
+#define	sntpSTACK_SIZE						(configMINIMAL_STACK_SIZE + 768 + (myDEBUG * 512))
 
 // #################################### NTP packet structures ######################################
 
