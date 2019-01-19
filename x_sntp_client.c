@@ -160,7 +160,7 @@ int32_t	xNtpRequestInfo(sock_ctx_t * psNtpCtx, uint64_t * pTStamp) {
 	if (sNtpBuf.Mode != specNTP_MODE_SERVER ||
 		sNtpBuf.VN != specNTP_VERSION_V4	||
    		OUTSIDE(specNTP_STRATUM_PRI, sNtpBuf.Stratum, specNTP_STRATUM_SEC_HI, uint8_t)) {
-		SL_ERR("Mode=%d  Ver=%d  Stratum=%d", sNtpBuf.Mode, sNtpBuf.VN, sNtpBuf.Stratum) ;
+		SL_ERR("Host=%s  Mode=%d  Ver=%d  Stratum=%d", psNtpCtx->pHost, sNtpBuf.Mode, sNtpBuf.VN, sNtpBuf.Stratum) ;
    		return erFAILURE ;
    	}
 	IF_PRINT(debugHOSTS, "Sync'ing with host %s\n", NtpHostTable[NtpHostIndex]) ;
@@ -222,7 +222,7 @@ void	vSntpTask(void * pvPara) {
 			vRtosSetStatus(flagNET_SNTP) ;
 			SL_INFO("%s  %R  tOFF=%'llduS  tRTD=%'llduS", NtpHostTable[NtpHostIndex], (uint64_t) * (uint64_t *) pvPara, tOFF, tRTD) ;
 		} else {
-			SL_ERR("updating time") ;
+			SL_ERR("Failed to update time") ;
 		}
 		vTaskDelayUntil(&NtpLWtime, pdMS_TO_TICKS(sntpINTERVAL_MS)) ;
 	}
@@ -231,4 +231,4 @@ void	vSntpTask(void * pvPara) {
 	vTaskDelete(NULL) ;
 }
 
-void	vTaskSntpInit(uint64_t * pTStamp) { xRtosTaskCreate(vSntpTask, "SNTP", sntpSTACK_SIZE, pTStamp, 2, NULL, INT_MAX) ; }
+void	vTaskSntpInit(uint64_t * pTStamp) { xRtosTaskCreate(vSntpTask, "SNTP", sntpSTACK_SIZE, pTStamp, sntpPRIORITY, NULL, INT_MAX) ; }
