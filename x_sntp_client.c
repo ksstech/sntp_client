@@ -213,6 +213,8 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
 void	vSntpTask(void * pvPara) {
 	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
 	TickType_t	NtpLWtime = xTaskGetTickCount();			// Get the current time as a reference to start our delays.
+	vRtosSetRunState(taskSNTP) ;
+
 	while (xRtosVerifyState(taskSNTP)) {
 		vRtosWaitStatus(flagNET_L3) ;					// first wait till IP is up and running
 		if (xNtpGetTime((uint64_t *) pvPara) == erSUCCESS) {
