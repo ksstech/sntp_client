@@ -211,7 +211,7 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
  * vSntpTask()
  */
 void	vSntpTask(void * pvPara) {
-	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
+	IF_SL_DBG(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
 	TickType_t	NtpLWtime = xTaskGetTickCount();			// Get the current time as a reference to start our delays.
 	vRtosSetRunState(taskSNTP) ;
 
@@ -228,7 +228,7 @@ void	vSntpTask(void * pvPara) {
 		}
 		vTaskDelayUntil(&NtpLWtime, pdMS_TO_TICKS(sntpINTERVAL_MS)) ;
 	}
-	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_DN) ;
+	IF_SL_DBG(debugAPPL_THREADS, debugAPPL_MESS_DN) ;
 	vRtosClearStatus(flagNET_SNTP) ;
 	vTaskDelete(NULL) ;
 }
