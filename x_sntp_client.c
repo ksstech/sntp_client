@@ -48,6 +48,7 @@ ntp_t		sNtpBuf ;
 int16_t		NtpHostIndex = 0 ;
 uint64_t	tNTP[4] ;
 int64_t		tRTD, tOFF ;
+TaskHandle_t	NtpTaskHandle ;
 
 const char * NtpHostTable[] = {
 	"ntp1.meraka.csir.co.za",
@@ -212,11 +213,11 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
  */
 void	vSntpTask(void * pvPara) {
 	IF_SL_DBG(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
-	TickType_t	NtpLWtime = xTaskGetTickCount();			// Get the current time as a reference to start our delays.
-	vRtosSetRunState(taskSNTP) ;
+	vRtosSetStateRUN(taskSNTP) ;
 
 	while (xRtosVerifyState(taskSNTP)) {
 		vRtosWaitStatus(flagNET_L3) ;					// first wait till IP is up and running
+		TickType_t	NtpLWtime = xTaskGetTickCount();	// Get the current time as a reference to start our delays.
 		if (xNtpGetTime((uint64_t *) pvPara) == erSUCCESS) {
 #if		defined(cc3200)
 			halWL_SetDateTime(CurSecs.unit) ;				// setup correct time in NWP
@@ -226,11 +227,12 @@ void	vSntpTask(void * pvPara) {
 		} else {
 			SL_ERR("Failed to update time") ;
 		}
-		vTaskDelayUntil(&NtpLWtime, pdMS_TO_TICKS(sntpINTERVAL_MS)) ;
+		NtpLWtime = xTaskGetTickCount() - NtpLWtime ;
+		vRtosWaitStateDELETE(taskSNTP, pdMS_TO_TICKS(sntpINTERVAL_MS) - NtpLWtime) ;
 	}
 	IF_SL_DBG(debugAPPL_THREADS, debugAPPL_MESS_DN) ;
 	vRtosClearStatus(flagNET_SNTP) ;
 	vTaskDelete(NULL) ;
 }
 
-void	vTaskSntpInit(uint64_t * pTStamp) { xRtosTaskCreate(vSntpTask, "SNTP", sntpSTACK_SIZE, pTStamp, sntpPRIORITY, NULL, INT_MAX) ; }
+void	vTaskSntpInit(uint64_t * pTStamp) { xRtosTaskCreate(vSntpTask, "SNTP", sntpSTACK_SIZE, pTStamp, sntpPRIORITY, &NtpTaskHandle, INT_MAX) ; }

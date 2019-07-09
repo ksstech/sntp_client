@@ -37,7 +37,7 @@ extern "C" {
 #define sntpINTERVAL_MS						(60 * SECONDS_IN_MINUTE * MILLIS_IN_SECOND)
 #define	sntpSTACK_SIZE						(configMINIMAL_STACK_SIZE + 1536 + (myDEBUG *256))
 
-// #################################### NTP packet structures ######################################
+// ######################################## enumerations ###########################################
 
 enum {
 	specNTP_VERSION_V1				= 1,
@@ -66,6 +66,8 @@ enum {
 	specNTP_STRATUM_RSVD_LO			= 17,
 	specNTP_STRATUM_RESERVED_HI		= 255,
 } ;
+
+// #################################### NTP packet structures ######################################
 
 typedef union {
 	uint64_t	val ;
@@ -138,6 +140,7 @@ typedef	struct __attribute__((__packed__)) ntp_s {
 
 // ################################### Global variables ############################################
 
+extern	TaskHandle_t	NtpTaskHandle ;
 
 // ############################### Level 2 network functions #######################################
 
