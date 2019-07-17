@@ -140,8 +140,6 @@ typedef	struct __attribute__((__packed__)) ntp_s {
 
 // ################################### Global variables ############################################
 
-extern	TaskHandle_t	NtpTaskHandle ;
-
 // ############################### Level 2 network functions #######################################
 
 int32_t xNtpGetTime(uint64_t * pTStamp) ;

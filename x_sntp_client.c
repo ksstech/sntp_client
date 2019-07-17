@@ -23,6 +23,7 @@
  */
 
 #include	"x_debug.h"
+#include	"x_printf.h"
 #include 	"x_sntp_client.h"
 #include	"x_sockets.h"
 #include	"x_errors_events.h"
@@ -48,7 +49,6 @@ ntp_t		sNtpBuf ;
 int16_t		NtpHostIndex = 0 ;
 uint64_t	tNTP[4] ;
 int64_t		tRTD, tOFF ;
-TaskHandle_t	NtpTaskHandle ;
 
 const char * NtpHostTable[] = {
 	"ntp1.meraka.csir.co.za",
@@ -139,7 +139,7 @@ int64_t		tT0, tT1 ;
 	IF_SL_DBG(debugCALCULATION, "'%s' %R tOFF=%'lld uS tRTD=%'lld uS", NtpHostTable[NtpHostIndex], *pTStamp, tOFF, tRTD) ;
 }
 
-int32_t	xNtpRequestInfo(sock_ctx_t * psNtpCtx, uint64_t * pTStamp) {
+int32_t	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
 	memset(&sNtpBuf, 0, sizeof(ntp_t)) ;
 	sNtpBuf.VN			= specNTP_VERSION_V4 ;
 	sNtpBuf.Mode		= specNTP_MODE_CLIENT ;
@@ -177,8 +177,8 @@ int32_t	xNtpRequestInfo(sock_ctx_t * psNtpCtx, uint64_t * pTStamp) {
  *				ZERO	 -	if all OK
  */
 int32_t xNtpGetTime(uint64_t * pTStamp) {
-	sock_ctx_t	sNtpCtx ;
-	memset(&sNtpCtx, 0, sizeof(sock_ctx_t)) ;
+	netx_t	sNtpCtx ;
+	memset(&sNtpCtx, 0, sizeof(netx_t)) ;
 	sNtpCtx.sa_in.sin_family	= AF_INET ;
 	sNtpCtx.sa_in.sin_port		= htons(IP_PORT_NTP) ;
 	sNtpCtx.type				= SOCK_DGRAM ;
@@ -230,9 +230,9 @@ void	vSntpTask(void * pvPara) {
 		NtpLWtime = xTaskGetTickCount() - NtpLWtime ;
 		vRtosWaitStateDELETE(taskSNTP, pdMS_TO_TICKS(sntpINTERVAL_MS) - NtpLWtime) ;
 	}
-	IF_SL_DBG(debugAPPL_THREADS, debugAPPL_MESS_DN) ;
 	vRtosClearStatus(flagNET_SNTP) ;
+	IF_SL_DBG(debugAPPL_THREADS, debugAPPL_MESS_DN) ;
 	vTaskDelete(NULL) ;
 }
 
-void	vTaskSntpInit(uint64_t * pTStamp) { xRtosTaskCreate(vSntpTask, "SNTP", sntpSTACK_SIZE, pTStamp, sntpPRIORITY, &NtpTaskHandle, INT_MAX) ; }
+void	vTaskSntpInit(uint64_t * pTStamp) { xRtosTaskCreate(vSntpTask, "SNTP", sntpSTACK_SIZE, pTStamp, sntpPRIORITY, NULL, INT_MAX) ; }
