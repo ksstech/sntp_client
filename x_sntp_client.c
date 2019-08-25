@@ -22,6 +22,7 @@
  * x_sntp_client.c
  */
 
+#include	"x_config.h"
 #include 	"x_sntp_client.h"
 #include	"x_sockets.h"
 #include	"x_errors_events.h"
