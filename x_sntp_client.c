@@ -213,7 +213,7 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
  * vSntpTask()
  */
 void	vSntpTask(void * pvPara) {
-	IF_SL_DBG(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
+	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
 	xRtosSetStateRUN(taskSNTP) ;
 
 	while (xRtosVerifyState(taskSNTP)) {
