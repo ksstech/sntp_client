@@ -220,9 +220,7 @@ void	vSntpTask(void * pvPara) {
 		}
 		TickType_t	NtpLWtime = xTaskGetTickCount();	// Get the current time as a reference to start our delays.
 		if (xNtpGetTime((uint64_t *) pvPara) == erSUCCESS) {
-#if		defined(cc3200)
-			halWL_SetDateTime(CurSecs.unit) ;				// setup correct time in NWP
-#endif
+			halRTC_SetTime(*(uint64_t *) pvPara) ;
 			xRtosSetStatus(flagNET_SNTP) ;
 			SL_INFO("%s  %R  tOFF=%'llduS  tRTD=%'llduS", NtpHostTable[NtpHostIndex], (uint64_t) * (uint64_t *) pvPara, tOFF, tRTD) ;
 		} else {
