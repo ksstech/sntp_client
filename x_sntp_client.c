@@ -28,6 +28,8 @@
 #include	"x_errors_events.h"
 #include	"x_syslog.h"
 
+#include	"hal_rtc.h"
+
 #include	<limits.h>
 #include	<string.h>
 #include	<math.h>
@@ -215,7 +217,7 @@ void	vSntpTask(void * pvPara) {
 	xRtosSetStateRUN(taskSNTP) ;
 
 	while (xRtosVerifyState(taskSNTP)) {
-		if ((xRtosWaitStatus(flagNET_L3, pdMS_TO_TICKS(100)) & flagNET_L3) == 0) {
+		if ((xRtosWaitStatus(flagL3_STA, pdMS_TO_TICKS(100)) & flagL3_STA) == 0) {
 			continue ;									// first wait till IP is up and running
 		}
 		TickType_t	NtpLWtime = xTaskGetTickCount();	// Get the current time as a reference to start our delays.
