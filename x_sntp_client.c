@@ -212,7 +212,7 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
  */
 void	vSntpTask(void * pvPara) {
 	IF_SL_DBG(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
-	vRtosSetStateRUN(taskSNTP) ;
+	xRtosSetStateRUN(taskSNTP) ;
 
 	while (xRtosVerifyState(taskSNTP)) {
 		if ((xRtosWaitStatus(flagNET_L3, pdMS_TO_TICKS(100)) & flagNET_L3) == 0) {
@@ -223,16 +223,16 @@ void	vSntpTask(void * pvPara) {
 #if		defined(cc3200)
 			halWL_SetDateTime(CurSecs.unit) ;				// setup correct time in NWP
 #endif
-			vRtosSetStatus(flagNET_SNTP) ;
+			xRtosSetStatus(flagNET_SNTP) ;
 			SL_INFO("%s  %R  tOFF=%'llduS  tRTD=%'llduS", NtpHostTable[NtpHostIndex], (uint64_t) * (uint64_t *) pvPara, tOFF, tRTD) ;
 		} else {
 			SL_ERR("Failed to update time") ;
 		}
 		NtpLWtime = xTaskGetTickCount() - NtpLWtime ;
-		vRtosWaitStateDELETE(taskSNTP, pdMS_TO_TICKS(sntpINTERVAL_MS) - NtpLWtime) ;
+		xRtosWaitStateDELETE(taskSNTP, pdMS_TO_TICKS(sntpINTERVAL_MS) - NtpLWtime) ;
 	}
 	vRtosClearStatus(flagNET_SNTP) ;
-	IF_SL_DBG(debugAPPL_THREADS, debugAPPL_MESS_DN) ;
+	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_DN) ;
 	vTaskDelete(NULL) ;
 }
 
