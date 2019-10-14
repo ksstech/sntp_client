@@ -212,6 +212,7 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
 
 	// end of loop, must have a valid HOST
 	vNtpCalcCorrectTime(pTStamp) ;						// calculate & update correct time
+	SL_INFO("%s(%#-I)  %R  tOFF=%'llduS  tRTD=%'llduS", NtpHostTable[NtpHostIndex], sNtpCtx.sa_in.sin_addr.s_addr, *pTStamp, tOFF, tRTD) ;
 	IF_EXEC_0(debugPROTOCOL, vNtpDebug) ;
 	return erSUCCESS ;
 }
@@ -231,7 +232,6 @@ void	vSntpTask(void * pvPara) {
 		if (xNtpGetTime((uint64_t *) pvPara) == erSUCCESS) {
 			halRTC_SetTime(*(uint64_t *) pvPara) ;
 			xRtosSetStatus(flagNET_SNTP) ;
-			SL_INFO("%s  %R  tOFF=%'llduS  tRTD=%'llduS", NtpHostTable[NtpHostIndex], (uint64_t) * (uint64_t *) pvPara, tOFF, tRTD) ;
 		} else {
 			SL_ERR("Failed to update time") ;
 		}
