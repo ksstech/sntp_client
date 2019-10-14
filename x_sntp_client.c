@@ -61,6 +61,12 @@ const char * NtpHostTable[] = {
 	"1.za.pool.ntp.org",
 	"2.za.pool.ntp.org",
 	"3.za.pool.ntp.org",
+#else
+	"0.pool.ntp.org",
+	"1.pool.ntp.org",
+	"2.pool.ntp.org",
+	"3.pool.ntp.org",
+#endif
 } ;
 
 #define		NTP_TABLE_SIZE			( sizeof(NtpHostTable) / sizeof(NtpHostTable[0]) )
