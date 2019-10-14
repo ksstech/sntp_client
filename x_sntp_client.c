@@ -52,6 +52,7 @@ uint64_t	tNTP[4] ;
 int64_t		tRTD, tOFF ;
 
 const char * NtpHostTable[] = {
+#if 0
 	"ntp1.meraka.csir.co.za",
 	"ntp1.neology.co.za",
 	"ntp2.meraka.csir.co.za",
@@ -216,7 +217,7 @@ void	vSntpTask(void * pvPara) {
 	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
 	xRtosSetStateRUN(taskSNTP) ;
 
-	while (xRtosVerifyState(taskSNTP)) {
+	while (bRtosVerifyState(taskSNTP)) {
 		if ((xRtosWaitStatus(flagL3_STA, pdMS_TO_TICKS(100)) & flagL3_STA) == 0) {
 			continue ;									// first wait till IP is up and running
 		}
