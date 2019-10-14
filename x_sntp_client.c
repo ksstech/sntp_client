@@ -157,13 +157,13 @@ int32_t	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
 	sNtpBuf.Xmit.frac	= htonl((*pTStamp % MICROS_IN_SECOND) * FRACTIONS_PER_MICROSEC) ;
 
 	// send the formatted request
-	int32_t iRetVal = xNetWrite(psNtpCtx, (char *) &sNtpBuf, sizeof(ntp_t)) ;
-	if (iRetVal == sizeof(ntp_t)) {
+	int32_t iRV = xNetWrite(psNtpCtx, (char *) &sNtpBuf, sizeof(ntp_t)) ;
+	if (iRV == sizeof(ntp_t)) {
 		xNetSetRecvTimeOut(psNtpCtx, 400) ;
-		iRetVal = xNetRead(psNtpCtx, (char *) &sNtpBuf, sizeof(ntp_t)) ;
+		iRV = xNetRead(psNtpCtx, (char *) &sNtpBuf, sizeof(ntp_t)) ;
 	}
-	if (iRetVal != sizeof(ntp_t)) {
-		return iRetVal ;
+	if (iRV != sizeof(ntp_t)) {
+		return iRV ;
 	}
 	// expect only server type responses with correct version and stratum
 	if (sNtpBuf.Mode != specNTP_MODE_SERVER ||
@@ -173,7 +173,7 @@ int32_t	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
    		return erFAILURE ;
    	}
 	IF_PRINT(debugHOSTS, "Sync'ing with host %s\n", NtpHostTable[NtpHostIndex]) ;
-	return iRetVal ;
+	return iRV ;
 }
 
 /*
@@ -195,15 +195,15 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
 	sNtpCtx.d_write				= 1 ;
 	sNtpCtx.d_read				= 1 ;
 #endif
-	for (int32_t iRetVal = -1; iRetVal != sizeof(ntp_t) ; ) {
+	for (int32_t iRV = -1; iRV != sizeof(ntp_t) ; ) {
 		sNtpCtx.pHost	= NtpHostTable[NtpHostIndex] ;
 		IF_PRINT(debugHOSTS, "Connecting to host %s\n", sNtpCtx.pHost) ;
-		iRetVal = xNetOpen(&sNtpCtx) ;
-		if (iRetVal >= erSUCCESS) {
-			iRetVal = xNtpRequestInfo(&sNtpCtx, pTStamp) ;// send the sNtpBuf request & check the result
+		iRV = xNetOpen(&sNtpCtx) ;
+		if (iRV >= erSUCCESS) {
+			iRV = xNtpRequestInfo(&sNtpCtx, pTStamp) ;	// send the sNtpBuf request & check the result
 		}
 		xNetClose(&sNtpCtx) ;							// close, & ignore return code..
-		if (iRetVal != sizeof(ntp_t)) {
+		if (iRV != sizeof(ntp_t)) {
 			vTaskDelay(pdMS_TO_TICKS(1000)) ;			// wait 1 seconds
 			++NtpHostIndex ;
 			NtpHostIndex %= NTP_TABLE_SIZE ;			// failed, step to next host...
