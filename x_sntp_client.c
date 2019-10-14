@@ -75,10 +75,9 @@ const char * NtpHostTable[] = {
  * xNTPCalcValue() convert NTP epoch NETWORK seconds/fractions to UNIX epoch HOST microseconds
  */
 uint64_t xNTPCalcValue(uint32_t Secs, uint32_t Frac) {
-uint64_t	u64Val1, u64Val2 ;
-	u64Val1	= ntohl(Secs) - EPOCH_SECONDS_DIFFERENCE ;	// difference between NTP and selected epoch
+	uint64_t u64Val1 = ntohl(Secs) - EPOCH_SECONDS_DIFFERENCE ;	// difference between NTP and selected epoch
 	u64Val1 *= MICROS_IN_SECOND ;						// convert Secs to uSec
-	u64Val2	= ntohl(Frac) / FRACTIONS_PER_MICROSEC ;	// convert Frac to uSec
+	uint64_t u64Val2 = ntohl(Frac) / FRACTIONS_PER_MICROSEC ;	// convert Frac to uSec
 	return u64Val1 + u64Val2 ;
 }
 
@@ -86,23 +85,15 @@ uint64_t	u64Val1, u64Val2 ;
  * vNtpDebug() - Display the sNtpBuf header info as from server
  */
 void	vNtpDebug(void) {
-static const char *	LI_mess[]	= { "None", "61Sec", "59Sec", "Alarm" } ;
-static const char *	Mode_mess[]	= { "Unspec", "SymAct", "SymPas", "Client", "Server", "BCast", "RsvdNTP", "RsvdPriv" } ;
-static const char *	Strat_mess[]= { "KofD", "Prim", "Sec", "UnSync" , "Rsvd" } ;
-// Display the header info
+	const char *	LI_mess[]	= { "None", "61Sec", "59Sec", "Alarm" } ;
+	const char *	Mode_mess[]	= { "Unspec", "SymAct", "SymPas", "Client", "Server", "BCast", "RsvdNTP", "RsvdPriv" } ;
+	const char *	Strat_mess[]= { "KofD", "Prim", "Sec", "UnSync" , "Rsvd" } ;
+	// Display the header info
 	PRINT("[NTP] LI[%s] V[%u] Mode[%s] Stratum[%s] Poll[%.1fs] Precision[%fuS]\n",
-											LI_mess[sNtpBuf.LI],
-											sNtpBuf.VN,
-											Mode_mess[sNtpBuf.Mode],
-											Strat_mess[STRATUM_IDX(sNtpBuf.Stratum)],
-											pow(2, (double) sNtpBuf.Poll),
-											pow(2, (double) sNtpBuf.Precision) * 1000000) ;
-	PRINT("[NTP] Root Delay[%d.%04d Sec]\n",
-											ntohs(sNtpBuf.RDelUnit),
-											ntohs(sNtpBuf.RDelFrac) / (UINT16_MAX / 10000) ) ;
-	PRINT("[NTP] Dispersion[%u.%04u Sec]\n",
-											ntohs(sNtpBuf.RDisUnit),
-											ntohs(sNtpBuf.RDisFrac) / (UINT16_MAX / 10000) ) ;
+			LI_mess[sNtpBuf.LI], sNtpBuf.VN, Mode_mess[sNtpBuf.Mode], Strat_mess[STRATUM_IDX(sNtpBuf.Stratum)],
+			pow(2, (double) sNtpBuf.Poll), pow(2, (double) sNtpBuf.Precision) * 1000000) ;
+	PRINT("[NTP] Root Delay[%d.%04d Sec]\n", ntohs(sNtpBuf.RDelUnit), ntohs(sNtpBuf.RDelFrac) / (UINT16_MAX/10000)) ;
+	PRINT("[NTP] Dispersion[%u.%04u Sec]\n", ntohs(sNtpBuf.RDisUnit), ntohs(sNtpBuf.RDisFrac) / (UINT16_MAX/10000)) ;
 	if (sNtpBuf.Stratum <= specNTP_STRATUM_PRI) {
 		PRINT("[NTP] Ref ID[%4s]\n", &sNtpBuf.RefID) ;
 	} else {
@@ -129,7 +120,7 @@ static const char *	Strat_mess[]= { "KofD", "Prim", "Sec", "UnSync" , "Rsvd" } ;
  * vNtpCalcCorrectTime()
  */
 void	vNtpCalcCorrectTime(uint64_t * pTStamp) {
-int64_t		tT0, tT1 ;
+	int64_t		tT0, tT1 ;
 	tNTP[0]	= xNTPCalcValue(sNtpBuf.Orig.secs , sNtpBuf.Orig.frac) ;
 	tNTP[1]	= xNTPCalcValue(sNtpBuf.Recv.secs , sNtpBuf.Recv.frac) ;
 	tNTP[2]	= xNTPCalcValue(sNtpBuf.Xmit.secs , sNtpBuf.Xmit.frac) ;
