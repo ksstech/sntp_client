@@ -212,7 +212,7 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
  * vSntpTask()
  */
 void	vSntpTask(void * pvPara) {
-	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
+	IF_CTRACK(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
 	xRtosSetStateRUN(taskSNTP) ;
 
 	while (bRtosVerifyState(taskSNTP)) {
@@ -230,7 +230,7 @@ void	vSntpTask(void * pvPara) {
 		xRtosWaitStateDELETE(taskSNTP, pdMS_TO_TICKS(sntpINTERVAL_MS) - NtpLWtime) ;
 	}
 	xRtosClearStatus(flagNET_SNTP) ;
-	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_DN) ;
+	IF_CTRACK(debugAPPL_THREADS, debugAPPL_MESS_DN) ;
 	IF_EXEC_1(configDELAY_TASK_DELETE > 0, vTaskDelay, configDELAY_TASK_DELETE) ;
 	vTaskDelete(NULL) ;
 }
