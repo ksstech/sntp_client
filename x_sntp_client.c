@@ -24,9 +24,11 @@
 
 #include	"x_config.h"
 #include 	"x_sntp_client.h"
+#include	"FreeRTOS_Support.h"
 #include	"x_sockets.h"
 #include	"x_errors_events.h"
 #include	"x_syslog.h"
+#include	"x_printf.h"
 
 #include	"hal_rtc.h"
 
@@ -51,23 +53,8 @@ int16_t		NtpHostIndex = 0 ;
 uint64_t	tNTP[4] ;
 int64_t		tRTD, tOFF ;
 
-const char * NtpHostTable[] = {
-#if 0
-	"ntp1.meraka.csir.co.za",
-	"ntp1.neology.co.za",
-	"ntp2.meraka.csir.co.za",
-	"ntp2.neology.co.za",
-	"0.za.pool.ntp.org",
-	"1.za.pool.ntp.org",
-	"2.za.pool.ntp.org",
-	"3.za.pool.ntp.org",
-#else
-	"0.pool.ntp.org",
-	"1.pool.ntp.org",
-	"2.pool.ntp.org",
-	"3.pool.ntp.org",
-#endif
-} ;
+const char * NtpHostTable[] = { "0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org", "3.pool.ntp.org" } ;
+//"ntp1.meraka.csir.co.za", "ntp1.neology.co.za", "ntp2.meraka.csir.co.za", "ntp2.neology.co.za", "0.za.pool.ntp.org", "1.za.pool.ntp.org", "2.za.pool.ntp.org", "3.za.pool.ntp.org",
 
 #define		NTP_TABLE_SIZE			( sizeof(NtpHostTable) / sizeof(NtpHostTable[0]) )
 

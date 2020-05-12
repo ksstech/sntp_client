@@ -24,8 +24,9 @@
 
 #pragma once
 
-#include	"x_definitions.h"				// bring x_time.h with..
-#include	"FreeRTOS_Support.h"			// needed for configMINIMAL_STACK_SIZE
+//#include	"x_definitions.h"				// bring x_time.h with..
+//#include	"FreeRTOS_Support.h"			// needed for configMINIMAL_STACK_SIZE
+#include	<stdint.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,5 +1,5 @@
-set(COMPONENT_SRCS "x_sntp_client.c")
-set(COMPONENT_ADD_INCLUDEDIRS)
-set(COMPONENT_REQUIRES)
-set(COMPONENT_PRIV_REQUIRES)
-register_component()
+idf_component_register( SRCS x_sntp_client.c 
+						INCLUDE_DIRS . 
+						REQUIRES
+						PRIV_REQUIRES irmacos x_sockets common syslog printf hal_esp32
+						)
