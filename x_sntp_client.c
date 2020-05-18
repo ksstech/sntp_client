@@ -27,8 +27,8 @@
 #include	"FreeRTOS_Support.h"
 #include	"x_sockets.h"
 #include	"x_errors_events.h"
-#include	"x_syslog.h"
-#include	"x_printf.h"
+#include	"syslog.h"
+#include	"printfx.h"
 
 #include	"hal_rtc.h"
 
@@ -217,7 +217,6 @@ void	vSntpTask(void * pvPara) {
 		xRtosWaitStateDELETE(taskSNTP, pdMS_TO_TICKS(sntpINTERVAL_MS) - NtpLWtime) ;
 	}
 	IF_CTRACK(debugAPPL_THREADS, debugAPPL_MESS_DN) ;
-	IF_EXEC_1(configDELAY_TASK_DELETE > 0, vTaskDelay, configDELAY_TASK_DELETE) ;
 	vTaskDelete(NULL) ;
 }
 
