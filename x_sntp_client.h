@@ -36,7 +36,7 @@ extern "C" {
 
 #define	sntpPRIORITY						2
 #define sntpINTERVAL_MS						(60 * SECONDS_IN_MINUTE * MILLIS_IN_SECOND)
-#define	sntpSTACK_SIZE						(configMINIMAL_STACK_SIZE + 1536 + (myDEBUG *256))
+#define	sntpSTACK_SIZE						(configMINIMAL_STACK_SIZE + 1024 + (flagSTACK * 256))
 
 // ######################################## enumerations ###########################################
 
