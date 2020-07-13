@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-18 Andre M Maree / KSS Technologies (Pty) Ltd.
+ * Copyright 2014-20 Andre M Maree / KSS Technologies (Pty) Ltd.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -24,8 +24,6 @@
 
 #pragma once
 
-//#include	"x_definitions.h"				// bring x_time.h with..
-//#include	"FreeRTOS_Support.h"			// needed for configMINIMAL_STACK_SIZE
 #include	<stdint.h>
 
 #ifdef __cplusplus
