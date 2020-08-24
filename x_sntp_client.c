@@ -92,16 +92,16 @@ void	vNtpDebug(void) {
 	uint64_t tTemp	= xNTPCalcValue(sNtpBuf.Ref.secs, sNtpBuf.Ref.frac) ;
 	static TSZ_t tt ;
 	tt.usecs = tTemp ;
-	PRINT("[NTP] Ref: %Z\n", &tt) ;
+	PRINT("[NTP] Ref: %.6Z\n", &tt) ;
 // Display the 4 different timestamps
 	tt.usecs = tNTP[0] ;
-	PRINT("[NTP] (t0) %Z\n", &tt) ;
+	PRINT("[NTP] (t0) %.6Z\n", &tt) ;
 	tt.usecs = tNTP[1] ;
-	PRINT("[NTP] (t1) %Z\n", &tt) ;
+	PRINT("[NTP] (t1) %.6Z\n", &tt) ;
 	tt.usecs = tNTP[2] ;
-	PRINT("[NTP] (t2) %Z\n", &tt) ;
+	PRINT("[NTP] (t2) %.6Z\n", &tt) ;
 	tt.usecs = tNTP[3] ;
-	PRINT("[NTP] (t3) %Z\n", &tt) ;
+	PRINT("[NTP] (t3) %.6Z\n", &tt) ;
 }
 
 /*
@@ -123,7 +123,7 @@ void	vNtpCalcCorrectTime(uint64_t * pTStamp) {
 	tOFF	= tT0 + tT1 ;
 	tOFF	/= 2 ;
 	*pTStamp = tNTP[0] + tRTD + tOFF ;
-	IF_SL_DBG(debugCALCULATION, "'%s' %R tOFF=%'lld uS tRTD=%'lld uS", NtpHostTable[NtpHostIndex], *pTStamp, tOFF, tRTD) ;
+	IF_SL_DBG(debugCALCULATION, "'%s' %.6R tOFF=%'lld uS tRTD=%'lld uS", NtpHostTable[NtpHostIndex], *pTStamp, tOFF, tRTD) ;
 }
 
 int32_t	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
@@ -191,7 +191,7 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
 
 	// end of loop, must have a valid HOST
 	vNtpCalcCorrectTime(pTStamp) ;						// calculate & update correct time
-	SL_INFO("%s(%#-I)  %R  tOFF=%'llduS  tRTD=%'llduS", NtpHostTable[NtpHostIndex], sNtpCtx.sa_in.sin_addr.s_addr, *pTStamp, tOFF, tRTD) ;
+	SL_INFO("%s(%#-I)  %.6R  tOFF=%'llduS  tRTD=%'llduS", NtpHostTable[NtpHostIndex], sNtpCtx.sa_in.sin_addr.s_addr, *pTStamp, tOFF, tRTD) ;
 	IF_EXEC_0(debugPROTOCOL, vNtpDebug) ;
 	return erSUCCESS ;
 }
