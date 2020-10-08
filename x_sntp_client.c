@@ -22,7 +22,6 @@
  * x_sntp_client.c
  */
 
-#include	"x_config.h"
 #include 	"x_sntp_client.h"
 #include	"FreeRTOS_Support.h"
 #include	"x_sockets.h"
@@ -36,11 +35,16 @@
 #include	<string.h>
 #include	<math.h>
 
-#define	debugFLAG						0x0000
+#define	debugFLAG					0x0000
 
-#define	debugPROTOCOL					(debugFLAG * 0x0001)
-#define	debugHOSTS						(debugFLAG * 0x0002)
-#define	debugCALCULATION				(debugFLAG * 0x0004)
+#define	debugPROTOCOL				(debugFLAG * 0x0001)
+#define	debugHOSTS					(debugFLAG * 0x0002)
+#define	debugCALCULATION			(debugFLAG * 0x0004)
+
+#define	debugTIMING					(debugFLAG_GLOBAL & debugFLAG & 0x1000)
+#define	debugTRACK					(debugFLAG_GLOBAL & debugFLAG & 0x2000)
+#define	debugPARAM					(debugFLAG_GLOBAL & debugFLAG & 0x4000)
+#define	debugRESULT					(debugFLAG_GLOBAL & debugFLAG & 0x8000)
 
 // ############################################ Macros  ############################################
 
@@ -164,8 +168,7 @@ int32_t	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
  *				ZERO	 -	if all OK
  */
 int32_t xNtpGetTime(uint64_t * pTStamp) {
-	netx_t	sNtpCtx ;
-	memset(&sNtpCtx, 0, sizeof(netx_t)) ;
+	netx_t	sNtpCtx = { 0 } ;
 	sNtpCtx.sa_in.sin_family	= AF_INET ;
 	sNtpCtx.sa_in.sin_port		= htons(IP_PORT_NTP) ;
 	sNtpCtx.type				= SOCK_DGRAM ;
@@ -200,7 +203,7 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
  * vSntpTask()
  */
 void	vSntpTask(void * pvPara) {
-	IF_CTRACK(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
+	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
 	xRtosSetStateRUN(taskSNTP) ;
 
 	while (bRtosVerifyState(taskSNTP)) {
@@ -217,7 +220,7 @@ void	vSntpTask(void * pvPara) {
 		NtpLWtime = xTaskGetTickCount() - NtpLWtime ;
 		xRtosWaitStateDELETE(taskSNTP, pdMS_TO_TICKS(sntpINTERVAL_MS) - NtpLWtime) ;
 	}
-	IF_CTRACK(debugAPPL_THREADS, debugAPPL_MESS_DN) ;
+	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_DN) ;
 	vTaskDelete(NULL) ;
 }
 
