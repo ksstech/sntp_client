@@ -57,7 +57,7 @@ int16_t		NtpHostIndex = 0 ;
 uint64_t	tNTP[4] ;
 int64_t		tRTD, tOFF ;
 
-const char * NtpHostTable[] = { "0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org", "3.pool.ntp.org" } ;
+const char * const NtpHostTable[] = { "0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org", "3.pool.ntp.org" } ;
 // "ntp1.meraka.csir.co.za", "ntp1.neology.co.za", "ntp2.meraka.csir.co.za", "ntp2.neology.co.za"
 // "0.za.pool.ntp.org", "1.za.pool.ntp.org", "2.za.pool.ntp.org", "3.za.pool.ntp.org",
 
@@ -77,9 +77,9 @@ uint64_t xNTPCalcValue(uint32_t Secs, uint32_t Frac) {
  * vNtpDebug() - Display the sNtpBuf header info as from server
  */
 void	vNtpDebug(void) {
-	const char *	LI_mess[]	= { "None", "61Sec", "59Sec", "Alarm" } ;
-	const char *	Mode_mess[]	= { "Unspec", "SymAct", "SymPas", "Client", "Server", "BCast", "RsvdNTP", "RsvdPriv" } ;
-	const char *	Strat_mess[]= { "KofD", "Prim", "Sec", "UnSync" , "Rsvd" } ;
+	const char * const LI_mess[]	= { "None", "61Sec", "59Sec", "Alarm" } ;
+	const char * const Mode_mess[]	= { "Unspec", "SymAct", "SymPas", "Client", "Server", "BCast", "RsvdNTP", "RsvdPriv" } ;
+	const char * const Strat_mess[]= { "KofD", "Prim", "Sec", "UnSync" , "Rsvd" } ;
 	// Display the header info
 	PRINT("[NTP] LI[%s] V[%u] Mode[%s] Stratum[%s] Poll[%.1fs] Precision[%fuS]\n",
 			LI_mess[sNtpBuf.LI], sNtpBuf.VN, Mode_mess[sNtpBuf.Mode], Strat_mess[STRATUM_IDX(sNtpBuf.Stratum)],
