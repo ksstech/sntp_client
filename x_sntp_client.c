@@ -26,9 +26,9 @@
 #include	"FreeRTOS_Support.h"
 #include	"x_sockets.h"
 #include	"x_errors_events.h"
+#include	"printfx.h"									// +x_definitions +stdarg +stdint +stdio
 #include	"syslog.h"
-#include	"printfx.h"
-
+#include	"hal_config.h"
 #include	"hal_rtc.h"
 
 #include	<limits.h>
