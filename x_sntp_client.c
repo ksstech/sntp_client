@@ -24,7 +24,7 @@
 
 #include 	"x_sntp_client.h"
 #include	"FreeRTOS_Support.h"
-#include	"x_sockets.h"
+#include	"socketsX.h"
 #include	"x_errors_events.h"
 #include	"printfx.h"									// +x_definitions +stdarg +stdint +stdio
 #include	"syslog.h"
