@@ -127,7 +127,7 @@ void	vNtpCalcCorrectTime(uint64_t * pTStamp) {
 	tOFF	= tT0 + tT1 ;
 	tOFF	/= 2 ;
 	*pTStamp = tNTP[0] + tRTD + tOFF ;
-	IF_SL_DBG(debugCALCULATION, "'%s' %.6R tOFF=%'lld uS tRTD=%'lld uS", NtpHostTable[NtpHostIndex], *pTStamp, tOFF, tRTD) ;
+	IF_SL_INFO(debugCALCULATION, "'%s' %.6R tOFF=%'lld uS tRTD=%'lld uS", NtpHostTable[NtpHostIndex], *pTStamp, tOFF, tRTD) ;
 }
 
 int32_t	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
