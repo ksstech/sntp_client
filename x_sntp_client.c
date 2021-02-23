@@ -174,6 +174,8 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
 	sNtpCtx.d_open				= 1 ;
 	sNtpCtx.d_write				= 1 ;
 	sNtpCtx.d_read				= 1 ;
+	sNtpCtx.d_data				= 1 ;
+	sNtpCtx.d_eagain			= 1 ;
 #endif
 	for (int32_t iRV = -1; iRV != sizeof(ntp_t) ; ) {
 		sNtpCtx.pHost	= NtpHostTable[NtpHostIndex] ;
