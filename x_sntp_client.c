@@ -185,7 +185,7 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
 		if (iRV != sizeof(ntp_t)) {
 			vTaskDelay(pdMS_TO_TICKS(1000)) ;			// wait 1 seconds
 			++NtpHostIndex ;
-			NtpHostIndex %= NTP_TABLE_SIZE ;			// failed, step to next host...
+			NtpHostIndex %= NUM_OF_MEMBERS(NtpHostTable) ;	// failed, step to next host...
 		}
 	}
 
