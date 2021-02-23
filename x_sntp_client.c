@@ -57,11 +57,11 @@ int16_t		NtpHostIndex = 0 ;
 uint64_t	tNTP[4] ;
 int64_t		tRTD, tOFF ;
 
-const char * const NtpHostTable[] = { "0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org", "3.pool.ntp.org" } ;
-// "ntp1.meraka.csir.co.za", "ntp1.neology.co.za", "ntp2.meraka.csir.co.za", "ntp2.neology.co.za"
-// "0.za.pool.ntp.org", "1.za.pool.ntp.org", "2.za.pool.ntp.org", "3.za.pool.ntp.org",
-
-#define		NTP_TABLE_SIZE			( sizeof(NtpHostTable) / sizeof(NtpHostTable[0]) )
+const char * const NtpHostTable[] = {
+//	"ntp1.meraka.csir.co.za", "ntp1.neology.co.za", "ntp2.meraka.csir.co.za", "ntp2.neology.co.za"
+	"0.za.pool.ntp.org",	"1.za.pool.ntp.org",	"2.za.pool.ntp.org",	"3.za.pool.ntp.org",
+//	"0.pool.ntp.org",		"1.pool.ntp.org", 		"2.pool.ntp.org",		"3.pool.ntp.org",
+} ;
 
 /*
  * xNTPCalcValue() convert NTP epoch NETWORK seconds/fractions to UNIX epoch HOST microseconds
@@ -86,11 +86,10 @@ void	vNtpDebug(void) {
 			pow(2, (double) sNtpBuf.Poll), pow(2, (double) sNtpBuf.Precision) * 1000000) ;
 	PRINT("[NTP] Root Delay[%d.%04d Sec]\n", ntohs(sNtpBuf.RDelUnit), ntohs(sNtpBuf.RDelFrac) / (UINT16_MAX/10000)) ;
 	PRINT("[NTP] Dispersion[%u.%04u Sec]\n", ntohs(sNtpBuf.RDisUnit), ntohs(sNtpBuf.RDisFrac) / (UINT16_MAX/10000)) ;
-	if (sNtpBuf.Stratum <= specNTP_STRATUM_PRI) {
+	if (sNtpBuf.Stratum <= specNTP_STRATUM_PRI)
 		PRINT("[NTP] Ref ID[%4s]\n", &sNtpBuf.RefID) ;
-	} else {
-		PRINT("[NTP] Ref IP[%-I]\n", ntohl(sNtpBuf.RefIP)) ;
-	}
+	else
+		PRINT("[NTP] Ref IP[%-I]\n", sNtpBuf.RefIP) ;
 
 // determine and display the reference timestamp
 	uint64_t tTemp	= xNTPCalcValue(sNtpBuf.Ref.secs, sNtpBuf.Ref.frac) ;
@@ -145,9 +144,8 @@ int32_t	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
 		xNetSetRecvTimeOut(psNtpCtx, 400) ;
 		iRV = xNetRead(psNtpCtx, (char *) &sNtpBuf, sizeof(ntp_t)) ;
 	}
-	if (iRV != sizeof(ntp_t)) {
+	if (iRV != sizeof(ntp_t))
 		return iRV ;
-	}
 	// expect only server type responses with correct version and stratum
 	if (sNtpBuf.Mode != specNTP_MODE_SERVER ||
 		sNtpBuf.VN != specNTP_VERSION_V4	||
@@ -181,9 +179,8 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
 		sNtpCtx.pHost	= NtpHostTable[NtpHostIndex] ;
 		IF_PRINT(debugHOSTS, "Connecting to host %s\n", sNtpCtx.pHost) ;
 		iRV = xNetOpen(&sNtpCtx) ;
-		if (iRV >= erSUCCESS) {
+		if (iRV >= erSUCCESS)
 			iRV = xNtpRequestInfo(&sNtpCtx, pTStamp) ;	// send the sNtpBuf request & check the result
-		}
 		xNetClose(&sNtpCtx) ;							// close, & ignore return code..
 		if (iRV != sizeof(ntp_t)) {
 			vTaskDelay(pdMS_TO_TICKS(1000)) ;			// wait 1 seconds
@@ -207,9 +204,8 @@ void	vSntpTask(void * pvPara) {
 	xRtosSetStateRUN(taskSNTP) ;
 
 	while (bRtosVerifyState(taskSNTP)) {
-		if ((xRtosWaitStatus(flagL3_STA, pdMS_TO_TICKS(100)) & flagL3_STA) == 0) {
+		if (bRtosWaitStatusALL(flagL3_STA, pdMS_TO_TICKS(100)) == 0)
 			continue ;									// first wait till IP is up and running
-		}
 		TickType_t	NtpLWtime = xTaskGetTickCount();	// Get the current time as a reference to start our delays.
 		if (xNtpGetTime((uint64_t *) pvPara) == erSUCCESS) {
 			halRTC_SetTime(*(uint64_t *) pvPara) ;
