@@ -218,6 +218,7 @@ void	vSntpTask(void * pvPara) {
 		NtpLWtime = xTaskGetTickCount() - NtpLWtime ;
 		xRtosWaitStateDELETE(taskSNTP, pdMS_TO_TICKS(sntpINTERVAL_MS) - NtpLWtime) ;
 	}
+	xRtosClearStatus(flagNET_SNTP) ;
 	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_DN) ;
 	vTaskDelete(NULL) ;
 }
