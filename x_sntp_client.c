@@ -1,25 +1,5 @@
 /*
- * Copyright 2014-20 Andre M Maree / KSS Technologies (Pty) Ltd.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
- * and associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- */
-
-/*
- * x_sntp_client.c
+ * Copyright 2014-21 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
 #include 	"x_sntp_client.h"
@@ -35,11 +15,11 @@
 #include	<string.h>
 #include	<math.h>
 
-#define	debugFLAG					0x0000
+#define	debugFLAG					0xF000
 
-#define	debugPROTOCOL				(debugFLAG * 0x0001)
-#define	debugHOSTS					(debugFLAG * 0x0002)
-#define	debugCALCULATION			(debugFLAG * 0x0004)
+#define	debugPROTOCOL				(debugFLAG & 0x0001)
+#define	debugHOSTS					(debugFLAG & 0x0002)
+#define	debugCALCULATION			(debugFLAG & 0x0004)
 
 #define	debugTIMING					(debugFLAG_GLOBAL & debugFLAG & 0x1000)
 #define	debugTRACK					(debugFLAG_GLOBAL & debugFLAG & 0x2000)
@@ -81,30 +61,31 @@ void	vNtpDebug(void) {
 	const char * const Mode_mess[]	= { "Unspec", "SymAct", "SymPas", "Client", "Server", "BCast", "RsvdNTP", "RsvdPriv" } ;
 	const char * const Strat_mess[]= { "KofD", "Prim", "Sec", "UnSync" , "Rsvd" } ;
 	// Display the header info
-	PRINT("[NTP] LI[%s] V[%u] Mode[%s] Stratum[%s] Poll[%.1fs] Precision[%fuS]\n",
+	printfx("[NTP] LI[%s] V[%u] Mode[%s] Stratum[%s] Poll[%.1fs] Precision[%fuS]\n",
 			LI_mess[sNtpBuf.LI], sNtpBuf.VN, Mode_mess[sNtpBuf.Mode], Strat_mess[STRATUM_IDX(sNtpBuf.Stratum)],
 			pow(2, (double) sNtpBuf.Poll), pow(2, (double) sNtpBuf.Precision) * 1000000) ;
-	PRINT("[NTP] Root Delay[%d.%04d Sec]\n", ntohs(sNtpBuf.RDelUnit), ntohs(sNtpBuf.RDelFrac) / (UINT16_MAX/10000)) ;
-	PRINT("[NTP] Dispersion[%u.%04u Sec]\n", ntohs(sNtpBuf.RDisUnit), ntohs(sNtpBuf.RDisFrac) / (UINT16_MAX/10000)) ;
-	if (sNtpBuf.Stratum <= specNTP_STRATUM_PRI)
-		PRINT("[NTP] Ref ID[%4s]\n", &sNtpBuf.RefID) ;
-	else
-		PRINT("[NTP] Ref IP[%-I]\n", sNtpBuf.RefIP) ;
+	printfx("[NTP] Root Delay[%d.%04d Sec]\n", ntohs(sNtpBuf.RDelUnit), ntohs(sNtpBuf.RDelFrac) / (UINT16_MAX/10000)) ;
+	printfx("[NTP] Dispersion[%u.%04u Sec]\n", ntohs(sNtpBuf.RDisUnit), ntohs(sNtpBuf.RDisFrac) / (UINT16_MAX/10000)) ;
+	if (sNtpBuf.Stratum <= specNTP_STRATUM_PRI) {
+		printfx("[NTP] Ref ID[%4s]\n", &sNtpBuf.RefID) ;
+	} else {
+		printfx("[NTP] Ref IP[%-I]\n", sNtpBuf.RefIP) ;
+	}
 
 // determine and display the reference timestamp
 	uint64_t tTemp	= xNTPCalcValue(sNtpBuf.Ref.secs, sNtpBuf.Ref.frac) ;
 	static TSZ_t tt ;
 	tt.usecs = tTemp ;
-	PRINT("[NTP] Ref: %.6Z\n", &tt) ;
+	printfx("[NTP] Ref: %.6Z\n", &tt) ;
 // Display the 4 different timestamps
 	tt.usecs = tNTP[0] ;
-	PRINT("[NTP] (t0) %.6Z\n", &tt) ;
+	printfx("[NTP] (t0) %.6Z\n", &tt) ;
 	tt.usecs = tNTP[1] ;
-	PRINT("[NTP] (t1) %.6Z\n", &tt) ;
+	printfx("[NTP] (t1) %.6Z\n", &tt) ;
 	tt.usecs = tNTP[2] ;
-	PRINT("[NTP] (t2) %.6Z\n", &tt) ;
+	printfx("[NTP] (t2) %.6Z\n", &tt) ;
 	tt.usecs = tNTP[3] ;
-	PRINT("[NTP] (t3) %.6Z\n", &tt) ;
+	printfx("[NTP] (t3) %.6Z\n", &tt) ;
 }
 
 /*
@@ -144,8 +125,9 @@ int32_t	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
 		xNetSetRecvTimeOut(psNtpCtx, 400) ;
 		iRV = xNetRead(psNtpCtx, (char *) &sNtpBuf, sizeof(ntp_t)) ;
 	}
-	if (iRV != sizeof(ntp_t))
+	if (iRV != sizeof(ntp_t)) {
 		return iRV ;
+	}
 	// expect only server type responses with correct version and stratum
 	if (sNtpBuf.Mode != specNTP_MODE_SERVER ||
 		sNtpBuf.VN != specNTP_VERSION_V4	||
@@ -181,8 +163,9 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
 		sNtpCtx.pHost	= NtpHostTable[NtpHostIndex] ;
 		IF_PRINT(debugHOSTS, "Connecting to host %s\n", sNtpCtx.pHost) ;
 		iRV = xNetOpen(&sNtpCtx) ;
-		if (iRV >= erSUCCESS)
+		if (iRV >= erSUCCESS) {
 			iRV = xNtpRequestInfo(&sNtpCtx, pTStamp) ;	// send the sNtpBuf request & check the result
+		}
 		xNetClose(&sNtpCtx) ;							// close, & ignore return code..
 		if (iRV != sizeof(ntp_t)) {
 			vTaskDelay(pdMS_TO_TICKS(1000)) ;			// wait 1 seconds
