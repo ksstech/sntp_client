@@ -186,6 +186,7 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
  */
 void	vSntpTask(void * pvPara) {
 	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
+	vTaskSetThreadLocalStoragePointer(NULL, 1, (void *)taskSNTP) ;
 	xRtosSetStateRUN(taskSNTP) ;
 
 	while (bRtosVerifyState(taskSNTP)) {
