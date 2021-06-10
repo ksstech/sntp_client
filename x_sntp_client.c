@@ -207,4 +207,4 @@ void	vSntpTask(void * pvPara) {
 	vTaskDelete(NULL) ;
 }
 
-void	vTaskSntpInit(uint64_t * pTStamp) { xRtosTaskCreate(vSntpTask, "SNTP", sntpSTACK_SIZE, pTStamp, sntpPRIORITY, NULL, INT_MAX) ; }
+void	vTaskSntpInit(uint64_t * pTStamp) { xRtosTaskCreate(vSntpTask, "SNTP", sntpSTACK_SIZE, pTStamp, sntpPRIORITY, NULL, tskNO_AFFINITY) ; }
