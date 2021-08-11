@@ -3,17 +3,16 @@
  */
 
 #include 	"x_sntp_client.h"
-#include	"FreeRTOS_Support.h"
-#include	"socketsX.h"
-#include	"x_errors_events.h"
+
 #include	"printfx.h"									// +x_definitions +stdarg +stdint +stdio
+#include	"socketsX.h"
 #include	"syslog.h"
-#include	"hal_config.h"
+#include	"x_errors_events.h"
+
 #include	"hal_rtc.h"
 
-#include	<limits.h>
-#include	<string.h>
 #include	<math.h>
+#include	<string.h>
 
 #define	debugFLAG					0xF000
 
@@ -56,7 +55,7 @@ uint64_t xNTPCalcValue(uint32_t Secs, uint32_t Frac) {
 /*
  * vNtpDebug() - Display the sNtpBuf header info as from server
  */
-void	vNtpDebug(void) {
+void vNtpDebug(void) {
 	const char * const LI_mess[]	= { "None", "61Sec", "59Sec", "Alarm" } ;
 	const char * const Mode_mess[]	= { "Unspec", "SymAct", "SymPas", "Client", "Server", "BCast", "RsvdNTP", "RsvdPriv" } ;
 	const char * const Strat_mess[]= { "KofD", "Prim", "Sec", "UnSync" , "Rsvd" } ;
@@ -66,11 +65,8 @@ void	vNtpDebug(void) {
 			pow(2, (double) sNtpBuf.Poll), pow(2, (double) sNtpBuf.Precision) * 1000000) ;
 	printfx("[NTP] Root Delay[%d.%04d Sec]\n", ntohs(sNtpBuf.RDelUnit), ntohs(sNtpBuf.RDelFrac) / (UINT16_MAX/10000)) ;
 	printfx("[NTP] Dispersion[%u.%04u Sec]\n", ntohs(sNtpBuf.RDisUnit), ntohs(sNtpBuf.RDisFrac) / (UINT16_MAX/10000)) ;
-	if (sNtpBuf.Stratum <= specNTP_STRATUM_PRI) {
-		printfx("[NTP] Ref ID[%4s]\n", &sNtpBuf.RefID) ;
-	} else {
-		printfx("[NTP] Ref IP[%-I]\n", sNtpBuf.RefIP) ;
-	}
+	if (sNtpBuf.Stratum <= specNTP_STRATUM_PRI) printfx("[NTP] Ref ID[%4s]\n", &sNtpBuf.RefID) ;
+	else printfx("[NTP] Ref IP[%-I]\n", sNtpBuf.RefIP) ;
 
 // determine and display the reference timestamp
 	uint64_t tTemp	= xNTPCalcValue(sNtpBuf.Ref.secs, sNtpBuf.Ref.frac) ;
@@ -91,7 +87,7 @@ void	vNtpDebug(void) {
 /*
  * vNtpCalcCorrectTime()
  */
-void	vNtpCalcCorrectTime(uint64_t * pTStamp) {
+void vNtpCalcCorrectTime(uint64_t * pTStamp) {
 	int64_t		tT0, tT1 ;
 	tNTP[0]	= xNTPCalcValue(sNtpBuf.Orig.secs , sNtpBuf.Orig.frac) ;
 	tNTP[1]	= xNTPCalcValue(sNtpBuf.Recv.secs , sNtpBuf.Recv.frac) ;
@@ -110,24 +106,22 @@ void	vNtpCalcCorrectTime(uint64_t * pTStamp) {
 	IF_SL_INFO(debugCALCULATION, "'%s' %.6R tOFF=%'lld uS tRTD=%'lld uS", NtpHostTable[NtpHostIndex], *pTStamp, tOFF, tRTD) ;
 }
 
-int32_t	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
+int	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
 	memset(&sNtpBuf, 0, sizeof(ntp_t)) ;
-	sNtpBuf.VN			= specNTP_VERSION_V4 ;
-	sNtpBuf.Mode		= specNTP_MODE_CLIENT ;
+	sNtpBuf.VN	= specNTP_VERSION_V4 ;
+	sNtpBuf.Mode= specNTP_MODE_CLIENT ;
 
 	// Plug in current (possibly very wrong) client transmit time
 	sNtpBuf.Xmit.secs 	= htonl(xTimeStampAsSeconds(*pTStamp) + EPOCH_SECONDS_DIFFERENCE) ;
 	sNtpBuf.Xmit.frac	= htonl((*pTStamp % MICROS_IN_SECOND) * FRACTIONS_PER_MICROSEC) ;
 
 	// send the formatted request
-	int32_t iRV = xNetWrite(psNtpCtx, (char *) &sNtpBuf, sizeof(ntp_t)) ;
+	int iRV = xNetWrite(psNtpCtx, (char *) &sNtpBuf, sizeof(ntp_t)) ;
 	if (iRV == sizeof(ntp_t)) {
 		xNetSetRecvTimeOut(psNtpCtx, 400) ;
 		iRV = xNetRead(psNtpCtx, (char *) &sNtpBuf, sizeof(ntp_t)) ;
 	}
-	if (iRV != sizeof(ntp_t)) {
-		return iRV ;
-	}
+	if (iRV != sizeof(ntp_t)) return iRV;
 	// expect only server type responses with correct version and stratum
 	if (sNtpBuf.Mode != specNTP_MODE_SERVER ||
 		sNtpBuf.VN != specNTP_VERSION_V4	||
@@ -147,7 +141,7 @@ int32_t	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
  *! \return		NEGATIVE - socket or application error code
  *				ZERO	 -	if all OK
  */
-int32_t xNtpGetTime(uint64_t * pTStamp) {
+int xNtpGetTime(uint64_t * pTStamp) {
 	netx_t	sNtpCtx = { 0 } ;
 	sNtpCtx.sa_in.sin_family	= AF_INET ;
 	sNtpCtx.sa_in.sin_port		= htons(IP_PORT_NTP) ;
@@ -163,9 +157,7 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
 		sNtpCtx.pHost	= NtpHostTable[NtpHostIndex] ;
 		IF_PRINT(debugHOSTS, "Connecting to host %s\n", sNtpCtx.pHost) ;
 		iRV = xNetOpen(&sNtpCtx) ;
-		if (iRV >= erSUCCESS) {
-			iRV = xNtpRequestInfo(&sNtpCtx, pTStamp) ;	// send the sNtpBuf request & check the result
-		}
+		if (iRV >= erSUCCESS) iRV = xNtpRequestInfo(&sNtpCtx, pTStamp) ;	// send the sNtpBuf request & check the result
 		xNetClose(&sNtpCtx) ;							// close, & ignore return code..
 		if (iRV != sizeof(ntp_t)) {
 			vTaskDelay(pdMS_TO_TICKS(1000)) ;			// wait 1 seconds
@@ -184,7 +176,7 @@ int32_t xNtpGetTime(uint64_t * pTStamp) {
 /*
  * vSntpTask()
  */
-void	vSntpTask(void * pvPara) {
+void vSntpTask(void * pvPara) {
 	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
 	vTaskSetThreadLocalStoragePointer(NULL, 1, (void *)taskSNTP) ;
 	xRtosSetStateRUN(taskSNTP) ;
@@ -207,4 +199,4 @@ void	vSntpTask(void * pvPara) {
 	vTaskDelete(NULL) ;
 }
 
-void	vTaskSntpInit(uint64_t * pTStamp) { xRtosTaskCreate(vSntpTask, "SNTP", sntpSTACK_SIZE, pTStamp, sntpPRIORITY, NULL, tskNO_AFFINITY) ; }
+void vTaskSntpInit(uint64_t * pTStamp) { xRtosTaskCreate(vSntpTask, "SNTP", sntpSTACK_SIZE, pTStamp, sntpPRIORITY, NULL, tskNO_AFFINITY) ; }

@@ -1,30 +1,12 @@
 /*
- * Copyright 2014-20 Andre M Maree / KSS Technologies (Pty) Ltd.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
- * and associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- */
-
-/*
+ * Copyright 2014-21 Andre M. Maree / KSS Technologies (Pty) Ltd.
  * x_sntp_client.h
  */
 
 #pragma once
 
-#include	<stdint.h>
+#include	"hal_config.h"
+#include	"FreeRTOS_Support.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -107,7 +89,7 @@ This is the time at which the reply departed the server for the client
 	https://www.meinbergglobal.com/english/info/ntp-packet.htm
 	https://tools.ietf.org/html/rfc5905									*/
 
-typedef	struct __attribute__((__packed__)) ntp_s {
+typedef	struct __attribute__((__packed__)) {
 	struct	{									// Header fields
 		uint8_t		Mode	: 3 ;				// Mode (0=resv,active,passive,client,server,broadcast,control,rsvd)
 		uint8_t		VN		: 3 ;				// Version (currently 4)
@@ -141,9 +123,9 @@ typedef	struct __attribute__((__packed__)) ntp_s {
 
 // ############################### Level 2 network functions #######################################
 
-int32_t xNtpGetTime(uint64_t * pTStamp) ;
-void	vSntpTask(void * pvPara) ;
-void	vTaskSntpInit(uint64_t * pTStamp) ;
+int xNtpGetTime(uint64_t *) ;
+void vTaskSntpInit(uint64_t *) ;
+void vSntpTask(void *) ;
 
 #ifdef __cplusplus
 }
