@@ -123,9 +123,9 @@ int	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
 	}
 	if (iRV != sizeof(ntp_t)) return iRV;
 	// expect only server type responses with correct version and stratum
-	if (sNtpBuf.Mode != specNTP_MODE_SERVER ||
-		sNtpBuf.VN != specNTP_VERSION_V4	||
-   		OUTSIDE(specNTP_STRATUM_PRI, sNtpBuf.Stratum, specNTP_STRATUM_SEC_HI, uint8_t)) {
+	if (sNtpBuf.Mode != specNTP_MODE_SERVER
+	||	sNtpBuf.VN != specNTP_VERSION_V4
+	||	OUTSIDE(specNTP_STRATUM_PRI, sNtpBuf.Stratum, specNTP_STRATUM_SEC_HI, uint8_t)) {
 		SL_ERR("Host=%s  Mode=%d  Ver=%d  Stratum=%d", psNtpCtx->pHost, sNtpBuf.Mode, sNtpBuf.VN, sNtpBuf.Stratum) ;
    		return erFAILURE ;
    	}
@@ -153,7 +153,7 @@ int xNtpGetTime(uint64_t * pTStamp) {
 	sNtpCtx.d_data				= 1 ;
 	sNtpCtx.d_eagain			= 1 ;
 #endif
-	for (int32_t iRV = -1; iRV != sizeof(ntp_t) ; ) {
+	for (int iRV = -1; iRV != sizeof(ntp_t) ; ) {
 		sNtpCtx.pHost	= NtpHostTable[NtpHostIndex] ;
 		IF_PRINT(debugHOSTS, "Connecting to host %s\n", sNtpCtx.pHost) ;
 		iRV = xNetOpen(&sNtpCtx) ;
@@ -182,15 +182,12 @@ void vSntpTask(void * pvPara) {
 	xRtosSetStateRUN(taskSNTP) ;
 
 	while (bRtosVerifyState(taskSNTP)) {
-		if (bRtosWaitStatusALL(flagL3_STA, pdMS_TO_TICKS(100)) == 0)
-			continue ;									// first wait till IP is up and running
+		if (bRtosWaitStatusALL(flagL3_STA, pdMS_TO_TICKS(100)) == 0) continue;	// wait till IP running
 		TickType_t	NtpLWtime = xTaskGetTickCount();	// Get the current time as a reference to start our delays.
 		if (xNtpGetTime((uint64_t *) pvPara) == erSUCCESS) {
 			halRTC_SetTime(*(uint64_t *) pvPara) ;
 			xRtosSetStatus(flagNET_SNTP) ;
-		} else {
-			SL_ERR("Failed to update time") ;
-		}
+		} else SL_ERR("Failed to update time") ;
 		NtpLWtime = xTaskGetTickCount() - NtpLWtime ;
 		xRtosWaitStateDELETE(taskSNTP, pdMS_TO_TICKS(sntpINTERVAL_MS) - NtpLWtime) ;
 	}
