@@ -3,7 +3,7 @@
  */
 
 #include 	"x_sntp_client.h"
-
+#include	"hal_variables.h"
 #include	"printfx.h"									// +x_definitions +stdarg +stdint +stdio
 #include	"socketsX.h"
 #include	"syslog.h"
@@ -178,11 +178,11 @@ int xNtpGetTime(uint64_t * pTStamp) {
  * vSntpTask()
  */
 void vSntpTask(void * pvPara) {
-	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
-	vTaskSetThreadLocalStoragePointer(NULL, 1, (void *)taskSNTP) ;
-	xRtosSetStateRUN(taskSNTP) ;
+	IF_PRINT(debugTRACK && ioB1GET(ioStart), debugAPPL_MESS_UP) ;
+	vTaskSetThreadLocalStoragePointer(NULL, 1, (void *)taskSNTP_MASK) ;
+	xRtosSetStateRUN(taskSNTP_MASK) ;
 
-	while (bRtosVerifyState(taskSNTP)) {
+	while (bRtosVerifyState(taskSNTP_MASK)) {
 		if (bRtosWaitStatusALL(flagL3_STA, pdMS_TO_TICKS(100)) == 0) continue;	// wait till IP running
 		TickType_t	NtpLWtime = xTaskGetTickCount();	// Get the current time as a reference to start our delays.
 		if (xNtpGetTime((uint64_t *) pvPara) == erSUCCESS) {
@@ -190,10 +190,10 @@ void vSntpTask(void * pvPara) {
 			xRtosSetStatus(flagNET_SNTP) ;
 		} else SL_ERR("Failed to update time") ;
 		NtpLWtime = xTaskGetTickCount() - NtpLWtime ;
-		xRtosWaitStateDELETE(taskSNTP, pdMS_TO_TICKS(sntpINTERVAL_MS) - NtpLWtime) ;
+		xRtosWaitStateDELETE(taskSNTP_MASK, pdMS_TO_TICKS(sntpINTERVAL_MS) - NtpLWtime) ;
 	}
 	xRtosClearStatus(flagNET_SNTP) ;
-	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_DN) ;
+	IF_PRINT(debugTRACK && ioB1GET(ioRstrt), debugAPPL_MESS_DN) ;
 	vTaskDelete(NULL) ;
 }
 
