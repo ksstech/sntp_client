@@ -38,9 +38,7 @@ int64_t		tRTD, tOFF ;
 
 const char * const NtpHostTable[] = {
 	"0.pool.ntp.org",		"1.pool.ntp.org",		"2.pool.ntp.org",		"3.pool.ntp.org",
-//	"0.za.pool.ntp.org",	"1.za.pool.ntp.org",	"2.za.pool.ntp.org",	"3.za.pool.ntp.org",
-//	"ntp1.meraka.csir.co.za", "ntp1.neology.co.za",
-//	"ntp2.meraka.csir.co.za", "ntp2.neology.co.za"
+//	"za.pool.ntp.org",	"ntp2.meraka.csir.co.za", "ntp2.neology.co.za",
 } ;
 
 /*
