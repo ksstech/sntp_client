@@ -124,7 +124,6 @@ typedef	struct __attribute__((__packed__)) {
 // ############################### Level 2 network functions #######################################
 
 int xNtpGetTime(uint64_t *) ;
-void vTaskSntpInit(uint64_t *) ;
 void vSntpTask(void *) ;
 
 #ifdef __cplusplus

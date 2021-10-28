@@ -199,5 +199,3 @@ void vSntpTask(void * pvPara) {
 	IF_PRINT(debugTRACK && ioB1GET(ioRstrt), debugAPPL_MESS_DN) ;
 	vTaskDelete(NULL) ;
 }
-
-void vTaskSntpInit(uint64_t * pTStamp) { xRtosTaskCreate(vSntpTask, "SNTP", sntpSTACK_SIZE, pTStamp, sntpPRIORITY, NULL, tskNO_AFFINITY) ; }
