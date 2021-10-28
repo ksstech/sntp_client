@@ -170,7 +170,7 @@ int xNtpGetTime(uint64_t * pTStamp) {
 
 	// end of loop, must have a valid HOST
 	vNtpCalcCorrectTime(pTStamp) ;						// calculate & update correct time
-	SL_INFO("%s(%#-I)  %.6R  tOFF=%'llduS  tRTD=%'llduS", NtpHostTable[NtpHostIndex], sNtpCtx.sa_in.sin_addr.s_addr, *pTStamp, tOFF, tRTD) ;
+	SL_NOT("%s(%#-I)  %.6R  tOFF=%'llduS  tRTD=%'llduS", NtpHostTable[NtpHostIndex], sNtpCtx.sa_in.sin_addr.s_addr, *pTStamp, tOFF, tRTD) ;
 	IF_EXEC_0(debugPROTOCOL, vNtpDebug) ;
 	return erSUCCESS ;
 }
