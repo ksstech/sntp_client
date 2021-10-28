@@ -158,7 +158,8 @@ int xNtpGetTime(uint64_t * pTStamp) {
 		sNtpCtx.pHost	= NtpHostTable[NtpHostIndex] ;
 		IF_PRINT(debugHOSTS, "Connecting to host %s\n", sNtpCtx.pHost) ;
 		iRV = xNetOpen(&sNtpCtx) ;
-		if (iRV >= erSUCCESS) iRV = xNtpRequestInfo(&sNtpCtx, pTStamp) ;	// send the sNtpBuf request & check the result
+		if (iRV >= erSUCCESS)
+			iRV = xNtpRequestInfo(&sNtpCtx, pTStamp) ;	// send the sNtpBuf request & check the result
 		xNetClose(&sNtpCtx) ;							// close, & ignore return code..
 		if (iRV != sizeof(ntp_t)) {
 			vTaskDelay(pdMS_TO_TICKS(1000)) ;			// wait 1 seconds
@@ -183,12 +184,14 @@ void vSntpTask(void * pvPara) {
 	xRtosSetStateRUN(taskSNTP_MASK) ;
 
 	while (bRtosVerifyState(taskSNTP_MASK)) {
-		if (bRtosWaitStatusALL(flagL3_STA, pdMS_TO_TICKS(100)) == 0) continue;	// wait till IP running
+		if (bRtosWaitStatusALL(flagLX_STA, pdMS_TO_TICKS(100)) == 0)
+			continue;				// wait till IP running
 		TickType_t	NtpLWtime = xTaskGetTickCount();	// Get the current time as a reference to start our delays.
 		if (xNtpGetTime((uint64_t *) pvPara) == erSUCCESS) {
 			halRTC_SetTime(*(uint64_t *) pvPara) ;
 			xRtosSetStatus(flagNET_SNTP) ;
-		} else SL_ERR("Failed to update time") ;
+		} else
+			SL_ERR("Failed to update time") ;
 		NtpLWtime = xTaskGetTickCount() - NtpLWtime ;
 		xRtosWaitStateDELETE(taskSNTP_MASK, pdMS_TO_TICKS(sntpINTERVAL_MS) - NtpLWtime) ;
 	}
