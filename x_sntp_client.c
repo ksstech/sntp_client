@@ -37,8 +37,7 @@ uint64_t	tNTP[4] ;
 int64_t		tRTD, tOFF ;
 
 const char * const NtpHostTable[] = {
-	"0.pool.ntp.org",		"1.pool.ntp.org",		"2.pool.ntp.org",		"3.pool.ntp.org",
-//	"za.pool.ntp.org",	"ntp2.meraka.csir.co.za", "ntp2.neology.co.za",
+	"0.pool.ntp.org",	"1.pool.ntp.org",	"2.pool.ntp.org",	"3.pool.ntp.org",
 } ;
 
 /*
@@ -64,23 +63,17 @@ void vNtpDebug(void) {
 			pow(2, (double) sNtpBuf.Poll), pow(2, (double) sNtpBuf.Precision) * 1000000) ;
 	printfx("[NTP] Root Delay[%d.%04d Sec]\n", ntohs(sNtpBuf.RDelUnit), ntohs(sNtpBuf.RDelFrac) / (UINT16_MAX/10000)) ;
 	printfx("[NTP] Dispersion[%u.%04u Sec]\n", ntohs(sNtpBuf.RDisUnit), ntohs(sNtpBuf.RDisFrac) / (UINT16_MAX/10000)) ;
-	if (sNtpBuf.Stratum <= specNTP_STRATUM_PRI) printfx("[NTP] Ref ID[%4s]\n", &sNtpBuf.RefID) ;
-	else printfx("[NTP] Ref IP[%-I]\n", sNtpBuf.RefIP) ;
-
+	if (sNtpBuf.Stratum <= specNTP_STRATUM_PRI)
+		printfx("[NTP] Ref ID[%4s]\n", &sNtpBuf.RefID) ;
+	else
+		printfx("[NTP] Ref IP[%-I]\n", sNtpBuf.RefIP) ;
 // determine and display the reference timestamp
 	uint64_t tTemp	= xNTPCalcValue(sNtpBuf.Ref.secs, sNtpBuf.Ref.frac) ;
-	static TSZ_t tt ;
-	tt.usecs = tTemp ;
-	printfx("[NTP] Ref: %.6Z\n", &tt) ;
-// Display the 4 different timestamps
-	tt.usecs = tNTP[0] ;
-	printfx("[NTP] (t0) %.6Z\n", &tt) ;
-	tt.usecs = tNTP[1] ;
-	printfx("[NTP] (t1) %.6Z\n", &tt) ;
-	tt.usecs = tNTP[2] ;
-	printfx("[NTP] (t2) %.6Z\n", &tt) ;
-	tt.usecs = tNTP[3] ;
-	printfx("[NTP] (t3) %.6Z\n", &tt) ;
+	printfx("[NTP] Ref: %.6R\n", tTemp);
+	printfx("[NTP] (t0) %.6R\n", tNTP[0]);
+	printfx("[NTP] (t1) %.6R\n", tNTP[1]);
+	printfx("[NTP] (t2) %.6R\n", tNTP[2]);
+	printfx("[NTP] (t3) %.6R\n", tNTP[3]);
 }
 
 /*
@@ -122,9 +115,8 @@ int	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
 	}
 	if (iRV != sizeof(ntp_t)) return iRV;
 	// expect only server type responses with correct version and stratum
-	if (sNtpBuf.Mode != specNTP_MODE_SERVER
-	||	sNtpBuf.VN != specNTP_VERSION_V4
-	||	OUTSIDE(specNTP_STRATUM_PRI, sNtpBuf.Stratum, specNTP_STRATUM_SEC_HI, uint8_t)) {
+	if (sNtpBuf.Mode != specNTP_MODE_SERVER || sNtpBuf.VN != specNTP_VERSION_V4 ||
+		OUTSIDE(specNTP_STRATUM_PRI, sNtpBuf.Stratum, specNTP_STRATUM_SEC_HI, uint8_t)) {
 		SL_ERR("Host=%s  Mode=%d  Ver=%d  Stratum=%d", psNtpCtx->pHost, sNtpBuf.Mode, sNtpBuf.VN, sNtpBuf.Stratum) ;
    		return erFAILURE ;
    	}
