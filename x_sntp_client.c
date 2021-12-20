@@ -169,7 +169,6 @@ int xNtpGetTime(uint64_t * pTStamp) {
  * vSntpTask()
  */
 void vSntpTask(void * pvPara) {
-	IF_PRINT(debugTRACK && ioB1GET(ioStart), debugAPPL_MESS_UP) ;
 	vTaskSetThreadLocalStoragePointer(NULL, 1, (void *)taskSNTP_MASK) ;
 	xRtosSetStateRUN(taskSNTP_MASK) ;
 
@@ -186,6 +185,5 @@ void vSntpTask(void * pvPara) {
 		xRtosWaitStateDELETE(taskSNTP_MASK, pdMS_TO_TICKS(sntpINTERVAL_MS) - NtpLWtime) ;
 	}
 	xRtosClearStatus(flagNET_SNTP) ;
-	IF_PRINT(debugTRACK && ioB1GET(ioRstrt), debugAPPL_MESS_DN) ;
-	vTaskDelete(NULL) ;
+	vRtosTaskDelete(NULL);
 }
