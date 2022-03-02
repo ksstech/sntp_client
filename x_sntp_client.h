@@ -14,9 +14,6 @@ extern "C" {
 
 // ###################################### BUILD : CONFIG definitions ###############################
 
-#define	sntpPRIORITY						2
-#define sntpINTERVAL_MS						(60 * SECONDS_IN_MINUTE * MILLIS_IN_SECOND)
-#define	sntpSTACK_SIZE						(configMINIMAL_STACK_SIZE + 1024 + (flagSTACK * 256))
 
 // ######################################## enumerations ###########################################
 
@@ -123,8 +120,8 @@ typedef	struct __attribute__((__packed__)) {
 
 // ############################### Level 2 network functions #######################################
 
-int xNtpGetTime(uint64_t *) ;
-void vSntpTask(void *) ;
+int xNtpGetTime(uint64_t *);
+void vSntpStart(void * pvPara);
 
 #ifdef __cplusplus
 }

@@ -27,6 +27,11 @@
 
 // ############################################ Macros  ############################################
 
+#define	sntpSTACK_SIZE				(configMINIMAL_STACK_SIZE + 1762+ (flagSTACK * 256))
+#define	sntpPRIORITY				2
+#define sntpMS_REFRESH				(60 * SECONDS_IN_MINUTE * MILLIS_IN_SECOND)
+#define sntpMS_RETRY				(1 * SECONDS_IN_MINUTE * MILLIS_IN_SECOND)
+
 #define	STRATUM_IDX(x)	((x >= specNTP_STRATUM_RSVD_LO) ? 4 : (x == specNTP_STRATUM_UNSYNC)	? 3 : (x >= specNTP_STRATUM_SEC_LO)	? 2 : x )
 
 // ###################################### local ie static variables ################################
@@ -63,10 +68,11 @@ void vNtpDebug(void) {
 			pow(2, (double) sNtpBuf.Poll), pow(2, (double) sNtpBuf.Precision) * 1000000) ;
 	printfx("[NTP] Root Delay[%d.%04d Sec]\n", ntohs(sNtpBuf.RDelUnit), ntohs(sNtpBuf.RDelFrac) / (UINT16_MAX/10000)) ;
 	printfx("[NTP] Dispersion[%u.%04u Sec]\n", ntohs(sNtpBuf.RDisUnit), ntohs(sNtpBuf.RDisFrac) / (UINT16_MAX/10000)) ;
-	if (sNtpBuf.Stratum <= specNTP_STRATUM_PRI)
+	if (sNtpBuf.Stratum <= specNTP_STRATUM_PRI) {
 		printfx("[NTP] Ref ID[%4s]\n", &sNtpBuf.RefID) ;
-	else
+	} else {
 		printfx("[NTP] Ref IP[%-I]\n", sNtpBuf.RefIP) ;
+	}
 // determine and display the reference timestamp
 	uint64_t tTemp	= xNTPCalcValue(sNtpBuf.Ref.secs, sNtpBuf.Ref.frac) ;
 	printfx("[NTP] Ref: %.6R\n", tTemp);
@@ -171,19 +177,24 @@ int xNtpGetTime(uint64_t * pTStamp) {
 void vSntpTask(void * pvPara) {
 	vTaskSetThreadLocalStoragePointer(NULL, 1, (void *)taskSNTP_MASK) ;
 	xRtosSetStateRUN(taskSNTP_MASK) ;
-
 	while (bRtosVerifyState(taskSNTP_MASK)) {
-		if (bRtosWaitStatusALL(flagLX_STA, pdMS_TO_TICKS(100)) == 0)
-			continue;				// wait till IP running
-		TickType_t	NtpLWtime = xTaskGetTickCount();	// Get the current time as a reference to start our delays.
+		vRtosWaitStatus(flagLX_STA);
+		TickType_t NtpDelay, NtpLWtime = xTaskGetTickCount();
 		if (xNtpGetTime((uint64_t *) pvPara) == erSUCCESS) {
 			halRTC_SetTime(*(uint64_t *) pvPara) ;
 			xRtosSetStatus(flagNET_SNTP) ;
-		} else
+			NtpDelay = pdMS_TO_TICKS(sntpMS_REFRESH);
+		} else {
 			SL_ERR("Failed to update time") ;
+			NtpDelay = pdMS_TO_TICKS(sntpMS_RETRY);
+		}
 		NtpLWtime = xTaskGetTickCount() - NtpLWtime ;
-		xRtosWaitStateDELETE(taskSNTP_MASK, pdMS_TO_TICKS(sntpINTERVAL_MS) - NtpLWtime) ;
+		xRtosWaitStateDELETE(taskSNTP_MASK, NtpDelay - NtpLWtime) ;
 	}
 	xRtosClearStatus(flagNET_SNTP) ;
 	vRtosTaskDelete(NULL);
+}
+
+void vSntpStart(void * pvPara) {
+	xRtosTaskCreate(vSntpTask, "SNTP", sntpSTACK_SIZE, pvPara, sntpPRIORITY, NULL, tskNO_AFFINITY);
 }
