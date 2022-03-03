@@ -126,7 +126,7 @@ int	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
 		SL_ERR("Host=%s  Mode=%d  Ver=%d  Stratum=%d", psNtpCtx->pHost, sNtpBuf.Mode, sNtpBuf.VN, sNtpBuf.Stratum) ;
    		return erFAILURE ;
    	}
-	IF_PRINT(debugHOSTS, "Sync'ing with host %s\n", NtpHostTable[NtpHostIndex]) ;
+	IF_P(debugHOSTS, "Sync'ing with host %s\n", NtpHostTable[NtpHostIndex]) ;
 	return iRV ;
 }
 
@@ -152,7 +152,7 @@ int xNtpGetTime(uint64_t * pTStamp) {
 #endif
 	for (int iRV = -1; iRV != sizeof(ntp_t) ; ) {
 		sNtpCtx.pHost	= NtpHostTable[NtpHostIndex] ;
-		IF_PRINT(debugHOSTS, "Connecting to host %s\n", sNtpCtx.pHost) ;
+		IF_P(debugHOSTS, "Connecting to host %s\n", sNtpCtx.pHost) ;
 		iRV = xNetOpen(&sNtpCtx) ;
 		if (iRV >= erSUCCESS)
 			iRV = xNtpRequestInfo(&sNtpCtx, pTStamp) ;	// send the sNtpBuf request & check the result
