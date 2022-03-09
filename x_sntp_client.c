@@ -139,10 +139,11 @@ int	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
  *				ZERO	 -	if all OK
  */
 int xNtpGetTime(uint64_t * pTStamp) {
-	netx_t	sNtpCtx = { 0 } ;
-	sNtpCtx.sa_in.sin_family	= AF_INET ;
-	sNtpCtx.sa_in.sin_port		= htons(IP_PORT_NTP) ;
-	sNtpCtx.type				= SOCK_DGRAM ;
+	netx_t	sNtpCtx = { 0 };
+	sNtpCtx.sa_in.sin_family = AF_INET;
+	sNtpCtx.sa_in.sin_port = htons(IP_PORT_NTP);
+	sNtpCtx.type = SOCK_DGRAM;
+	sNtpCtx.flags = SO_REUSEADDR;
 #if 0
 	sNtpCtx.d_open				= 1 ;
 	sNtpCtx.d_write				= 1 ;
