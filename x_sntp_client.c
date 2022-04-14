@@ -101,7 +101,7 @@ void vNtpCalcCorrectTime(uint64_t * pTStamp) {
 	tOFF	= tT0 + tT1 ;
 	tOFF	/= 2 ;
 	*pTStamp = tNTP[0] + tRTD + tOFF ;
-	IF_SL_INFO(debugCALCULATION, "'%s' %.6R tOFF=%'lld uS tRTD=%'lld uS", NtpHostTable[NtpHostIndex], *pTStamp, tOFF, tRTD) ;
+	IF_SL_INFO(debugCALCULATION, "'%s' %.6R tOFF=%`lld uS tRTD=%`lld uS", NtpHostTable[NtpHostIndex], *pTStamp, tOFF, tRTD) ;
 }
 
 int	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
@@ -167,7 +167,7 @@ int xNtpGetTime(uint64_t * pTStamp) {
 
 	// end of loop, must have a valid HOST
 	vNtpCalcCorrectTime(pTStamp) ;						// calculate & update correct time
-	SL_NOT("%s(%#-I)  %.6R  tOFF=%'llduS  tRTD=%'llduS", NtpHostTable[NtpHostIndex], sNtpCtx.sa_in.sin_addr.s_addr, *pTStamp, tOFF, tRTD) ;
+	SL_NOT("%s(%#-I)  %.6R  tOFF=%`llduS  tRTD=%`llduS", NtpHostTable[NtpHostIndex], sNtpCtx.sa_in.sin_addr.s_addr, *pTStamp, tOFF, tRTD) ;
 	IF_EXEC_0(debugPROTOCOL, vNtpDebug) ;
 	return erSUCCESS ;
 }
