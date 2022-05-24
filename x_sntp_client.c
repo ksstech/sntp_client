@@ -48,7 +48,7 @@ const char * const NtpHostTable[] = {
 /*
  * xNTPCalcValue() convert NTP epoch NETWORK seconds/fractions to UNIX epoch HOST microseconds
  */
-uint64_t xNTPCalcValue(uint32_t Secs, uint32_t Frac) {
+uint64_t xNTPCalcValue(u32_t Secs, u32_t Frac) {
 	uint64_t u64Val1 = ntohl(Secs) - EPOCH_SECONDS_DIFFERENCE ;	// difference between NTP and selected epoch
 	u64Val1 *= MICROS_IN_SECOND ;						// convert Secs to uSec
 	uint64_t u64Val2 = ntohl(Frac) / FRACTIONS_PER_MICROSEC ;	// convert Frac to uSec
@@ -114,10 +114,10 @@ int	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
 	sNtpBuf.Xmit.frac	= htonl((*pTStamp % MICROS_IN_SECOND) * FRACTIONS_PER_MICROSEC) ;
 
 	// send the formatted request
-	int iRV = xNetWrite(psNtpCtx, (char *) &sNtpBuf, sizeof(ntp_t)) ;
+	int iRV = xNetWrite(psNtpCtx, (u8_t *) &sNtpBuf, sizeof(ntp_t)) ;
 	if (iRV == sizeof(ntp_t)) {
 		xNetSetRecvTimeOut(psNtpCtx, 400) ;
-		iRV = xNetRead(psNtpCtx, (char *) &sNtpBuf, sizeof(ntp_t)) ;
+		iRV = xNetRead(psNtpCtx, (u8_t *) &sNtpBuf, sizeof(ntp_t)) ;
 	}
 	if (iRV != sizeof(ntp_t)) return iRV;
 	// expect only server type responses with correct version and stratum
