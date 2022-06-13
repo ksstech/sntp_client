@@ -63,23 +63,23 @@ void vNtpDebug(void) {
 	const char * const Mode_mess[]	= { "Unspec", "SymAct", "SymPas", "Client", "Server", "BCast", "RsvdNTP", "RsvdPriv" } ;
 	const char * const Strat_mess[]= { "KofD", "Prim", "Sec", "UnSync" , "Rsvd" } ;
 	// Display the header info
-	printfx("[NTP] LI[%s] V[%u] Mode[%s] Stratum[%s] Poll[%.1fs] Precision[%fuS]\n",
+	printfx("[NTP] LI[%s] V[%u] Mode[%s] Stratum[%s] Poll[%.1fs] Precision[%fuS]\r\n",
 			LI_mess[sNtpBuf.LI], sNtpBuf.VN, Mode_mess[sNtpBuf.Mode], Strat_mess[STRATUM_IDX(sNtpBuf.Stratum)],
 			pow(2, (double) sNtpBuf.Poll), pow(2, (double) sNtpBuf.Precision) * 1000000) ;
-	printfx("[NTP] Root Delay[%d.%04d Sec]\n", ntohs(sNtpBuf.RDelUnit), ntohs(sNtpBuf.RDelFrac) / (UINT16_MAX/10000)) ;
-	printfx("[NTP] Dispersion[%u.%04u Sec]\n", ntohs(sNtpBuf.RDisUnit), ntohs(sNtpBuf.RDisFrac) / (UINT16_MAX/10000)) ;
+	printfx("[NTP] Root Delay[%d.%04d Sec]\r\n", ntohs(sNtpBuf.RDelUnit), ntohs(sNtpBuf.RDelFrac) / (UINT16_MAX/10000)) ;
+	printfx("[NTP] Dispersion[%u.%04u Sec]\r\n", ntohs(sNtpBuf.RDisUnit), ntohs(sNtpBuf.RDisFrac) / (UINT16_MAX/10000)) ;
 	if (sNtpBuf.Stratum <= specNTP_STRATUM_PRI) {
-		printfx("[NTP] Ref ID[%4s]\n", &sNtpBuf.RefID) ;
+		printfx("[NTP] Ref ID[%4s]\r\n", &sNtpBuf.RefID) ;
 	} else {
-		printfx("[NTP] Ref IP[%-I]\n", sNtpBuf.RefIP) ;
+		printfx("[NTP] Ref IP[%-I]\r\n", sNtpBuf.RefIP) ;
 	}
 // determine and display the reference timestamp
 	uint64_t tTemp	= xNTPCalcValue(sNtpBuf.Ref.secs, sNtpBuf.Ref.frac) ;
-	printfx("[NTP] Ref: %.6R\n", tTemp);
-	printfx("[NTP] (t0) %.6R\n", tNTP[0]);
-	printfx("[NTP] (t1) %.6R\n", tNTP[1]);
-	printfx("[NTP] (t2) %.6R\n", tNTP[2]);
-	printfx("[NTP] (t3) %.6R\n", tNTP[3]);
+	printfx("[NTP] Ref: %.6R\r\n", tTemp);
+	printfx("[NTP] (t0) %.6R\r\n", tNTP[0]);
+	printfx("[NTP] (t1) %.6R\r\n", tNTP[1]);
+	printfx("[NTP] (t2) %.6R\r\n", tNTP[2]);
+	printfx("[NTP] (t3) %.6R\r\n", tNTP[3]);
 }
 
 /*
@@ -126,7 +126,7 @@ int	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
 		SL_ERR("Host=%s  Mode=%d  Ver=%d  Stratum=%d", psNtpCtx->pHost, sNtpBuf.Mode, sNtpBuf.VN, sNtpBuf.Stratum) ;
    		return erFAILURE ;
    	}
-	IF_P(debugHOSTS, "Sync'ing with host %s\n", NtpHostTable[NtpHostIndex]) ;
+	IF_P(debugHOSTS, "Sync'ing with host %s\r\n", NtpHostTable[NtpHostIndex]) ;
 	return iRV ;
 }
 
@@ -153,7 +153,7 @@ int xNtpGetTime(uint64_t * pTStamp) {
 #endif
 	for (int iRV = -1; iRV != sizeof(ntp_t) ; ) {
 		sNtpCtx.pHost	= NtpHostTable[NtpHostIndex] ;
-		IF_P(debugHOSTS, "Connecting to host %s\n", sNtpCtx.pHost) ;
+		IF_P(debugHOSTS, "Connecting to host %s\r\n", sNtpCtx.pHost) ;
 		iRV = xNetOpen(&sNtpCtx) ;
 		if (iRV >= erSUCCESS)
 			iRV = xNtpRequestInfo(&sNtpCtx, pTStamp) ;	// send the sNtpBuf request & check the result
