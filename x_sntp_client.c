@@ -1,18 +1,18 @@
 /*
- * Copyright 2014-21 Andre M. Maree / KSS Technologies (Pty) Ltd.
+ * x_sntp_client.c
+ * Copyright 2014-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
-#include 	"x_sntp_client.h"
-#include	"hal_variables.h"
-#include	"printfx.h"									// +x_definitions +stdarg +stdint +stdio
-#include	"socketsX.h"
-#include	"syslog.h"
-#include	"x_errors_events.h"
+#include <math.h>
 
-#include	"hal_rtc.h"
+#include "x_sntp_client.h"
+#include "hal_variables.h"
+#include "printfx.h"									// +x_definitions +stdarg +stdint +stdio
+#include "socketsX.h"
+#include "syslog.h"
+#include "x_errors_events.h"
 
-#include	<math.h>
-#include	<string.h>
+#include "hal_rtc.h"
 
 #define	debugFLAG					0xF000
 
@@ -36,10 +36,10 @@
 
 // ###################################### local ie static variables ################################
 
-ntp_t		sNtpBuf ;
-int16_t		NtpHostIndex = 0 ;
-uint64_t	tNTP[4] ;
-int64_t		tRTD, tOFF ;
+ntp_t sNtpBuf;
+u64_t tNTP[4];
+s64_t tRTD, tOFF;
+int NtpHostIndex = 0;
 
 const char * const NtpHostTable[] = {
 	"0.pool.ntp.org",	"1.pool.ntp.org",	"2.pool.ntp.org",	"3.pool.ntp.org",
@@ -48,10 +48,10 @@ const char * const NtpHostTable[] = {
 /*
  * xNTPCalcValue() convert NTP epoch NETWORK seconds/fractions to UNIX epoch HOST microseconds
  */
-uint64_t xNTPCalcValue(u32_t Secs, u32_t Frac) {
-	uint64_t u64Val1 = ntohl(Secs) - EPOCH_SECONDS_DIFFERENCE ;	// difference between NTP and selected epoch
+u64_t xNTPCalcValue(u32_t Secs, u32_t Frac) {
+	u64_t u64Val1 = ntohl(Secs) - EPOCH_SECONDS_DIFFERENCE ;	// difference between NTP and selected epoch
 	u64Val1 *= MICROS_IN_SECOND ;						// convert Secs to uSec
-	uint64_t u64Val2 = ntohl(Frac) / FRACTIONS_PER_MICROSEC ;	// convert Frac to uSec
+	u64_t u64Val2 = ntohl(Frac) / FRACTIONS_PER_MICROSEC ;	// convert Frac to uSec
 	return u64Val1 + u64Val2 ;
 }
 
@@ -74,7 +74,7 @@ void vNtpDebug(void) {
 		printfx("[NTP] Ref IP[%-I]\r\n", sNtpBuf.RefIP) ;
 	}
 // determine and display the reference timestamp
-	uint64_t tTemp	= xNTPCalcValue(sNtpBuf.Ref.secs, sNtpBuf.Ref.frac) ;
+	u64_t tTemp	= xNTPCalcValue(sNtpBuf.Ref.secs, sNtpBuf.Ref.frac) ;
 	printfx("[NTP] Ref: %.6R\r\n", tTemp);
 	printfx("[NTP] (t0) %.6R\r\n", tNTP[0]);
 	printfx("[NTP] (t1) %.6R\r\n", tNTP[1]);
@@ -85,8 +85,8 @@ void vNtpDebug(void) {
 /*
  * vNtpCalcCorrectTime()
  */
-void vNtpCalcCorrectTime(uint64_t * pTStamp) {
-	int64_t		tT0, tT1 ;
+void vNtpCalcCorrectTime(u64_t * pTStamp) {
+	s64_t		tT0, tT1 ;
 	tNTP[0]	= xNTPCalcValue(sNtpBuf.Orig.secs , sNtpBuf.Orig.frac) ;
 	tNTP[1]	= xNTPCalcValue(sNtpBuf.Recv.secs , sNtpBuf.Recv.frac) ;
 	tNTP[2]	= xNTPCalcValue(sNtpBuf.Xmit.secs , sNtpBuf.Xmit.frac) ;
@@ -104,7 +104,7 @@ void vNtpCalcCorrectTime(uint64_t * pTStamp) {
 	IF_SL_INFO(debugCALCULATION, "'%s' %.6R tOFF=%`lld uS tRTD=%`lld uS", NtpHostTable[NtpHostIndex], *pTStamp, tOFF, tRTD) ;
 }
 
-int	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
+int	xNtpRequestInfo(netx_t * psNtpCtx, u64_t * pTStamp) {
 	memset(&sNtpBuf, 0, sizeof(ntp_t)) ;
 	sNtpBuf.VN	= specNTP_VERSION_V4 ;
 	sNtpBuf.Mode= specNTP_MODE_CLIENT ;
@@ -138,7 +138,7 @@ int	xNtpRequestInfo(netx_t * psNtpCtx, uint64_t * pTStamp) {
  *! \return		NEGATIVE - socket or application error code
  *				ZERO	 -	if all OK
  */
-int xNtpGetTime(uint64_t * pTStamp) {
+int xNtpGetTime(u64_t * pTStamp) {
 	netx_t	sNtpCtx = { 0 };
 	sNtpCtx.sa_in.sin_family = AF_INET;
 	sNtpCtx.sa_in.sin_port = htons(IP_PORT_NTP);
@@ -161,7 +161,7 @@ int xNtpGetTime(uint64_t * pTStamp) {
 		if (iRV != sizeof(ntp_t)) {
 			vTaskDelay(pdMS_TO_TICKS(1000)) ;			// wait 1 seconds
 			++NtpHostIndex ;
-			NtpHostIndex %= NO_MEM(NtpHostTable) ;	// failed, step to next host...
+			NtpHostIndex %= NO_MEM(NtpHostTable) ;		// failed, step to next host...
 		}
 	}
 
@@ -181,8 +181,8 @@ void vSntpTask(void * pvPara) {
 	while (bRtosVerifyState(taskSNTP_MASK)) {
 		vRtosWaitStatus(flagLX_STA);
 		TickType_t NtpDelay, NtpLWtime = xTaskGetTickCount();
-		if (xNtpGetTime((uint64_t *) pvPara) == erSUCCESS) {
-			halRTC_SetTime(*(uint64_t *) pvPara) ;
+		if (xNtpGetTime((u64_t *) pvPara) == erSUCCESS) {
+			halRTC_SetTime(*(u64_t *) pvPara) ;
 			xRtosSetStatus(flagNET_SNTP) ;
 			NtpDelay = pdMS_TO_TICKS(sntpMS_REFRESH);
 		} else {
