@@ -36,6 +36,9 @@
 
 // ###################################### local ie static variables ################################
 
+StaticTask_t ttsSNTP = { 0 };
+StackType_t tsbSNTP[sntpSTACK_SIZE] = { 0 };
+
 ntp_t sNtpBuf;
 u64_t tNTP[4];
 s64_t tRTD, tOFF;
@@ -198,5 +201,5 @@ void vSntpTask(void * pvPara) {
 }
 
 void vSntpStart(void * pvPara) {
-	xRtosTaskCreate(vSntpTask, "SNTP", sntpSTACK_SIZE, pvPara, sntpPRIORITY, NULL, tskNO_AFFINITY);
+	xRtosTaskCreateStatic(vSntpTask, "SNTP", sntpSTACK_SIZE, pvPara, sntpPRIORITY, tsbSNTP, &ttsSNTP, tskNO_AFFINITY);
 }
