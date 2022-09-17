@@ -117,10 +117,10 @@ int	xNtpRequestInfo(netx_t * psNtpCtx, u64_t * pTStamp) {
 	sNtpBuf.Xmit.frac	= htonl((*pTStamp % MICROS_IN_SECOND) * FRACTIONS_PER_MICROSEC) ;
 
 	// send the formatted request
-	int iRV = xNetWrite(psNtpCtx, (u8_t *) &sNtpBuf, sizeof(ntp_t)) ;
+	int iRV = xNetSend(psNtpCtx, (u8_t *) &sNtpBuf, sizeof(ntp_t)) ;
 	if (iRV == sizeof(ntp_t)) {
 		xNetSetRecvTO(psNtpCtx, 400);
-		iRV = xNetRead(psNtpCtx, (u8_t *) &sNtpBuf, sizeof(ntp_t)) ;
+		iRV = xNetRecv(psNtpCtx, (u8_t *) &sNtpBuf, sizeof(ntp_t)) ;
 	}
 	if (iRV != sizeof(ntp_t))
 		return iRV;
@@ -149,11 +149,7 @@ int xNtpGetTime(u64_t * pTStamp) {
 	sNtpCtx.type = SOCK_DGRAM;
 	sNtpCtx.flags = SO_REUSEADDR;
 #if 0
-	sNtpCtx.d_open				= 1 ;
-	sNtpCtx.d_write				= 1 ;
-	sNtpCtx.d_read				= 1 ;
-	sNtpCtx.d_data				= 1 ;
-	sNtpCtx.d_eagain			= 1 ;
+	sNtpCtx.d = (netx_dbg_t) * { .o=1, .w=1, .r=1, .d=1, .ea=1 };
 #endif
 	for (int iRV = -1; iRV != sizeof(ntp_t) ; ) {
 		sNtpCtx.pHost	= NtpHostTable[NtpHostIndex] ;
