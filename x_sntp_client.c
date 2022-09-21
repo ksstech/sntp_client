@@ -41,7 +41,7 @@ StackType_t tsbSNTP[sntpSTACK_SIZE] = { 0 };
 
 ntp_t sNtpBuf;
 u64_t tNTP[4];
-s64_t tRTD, tOFF;
+i64_t tRTD, tOFF;
 int NtpHostIndex = 0;
 
 const char * const NtpHostTable[] = {
@@ -89,7 +89,7 @@ void vNtpDebug(void) {
  * vNtpCalcCorrectTime()
  */
 void vNtpCalcCorrectTime(u64_t * pTStamp) {
-	s64_t		tT0, tT1 ;
+	i64_t		tT0, tT1 ;
 	tNTP[0]	= xNTPCalcValue(sNtpBuf.Orig.secs , sNtpBuf.Orig.frac) ;
 	tNTP[1]	= xNTPCalcValue(sNtpBuf.Recv.secs , sNtpBuf.Recv.frac) ;
 	tNTP[2]	= xNTPCalcValue(sNtpBuf.Xmit.secs , sNtpBuf.Xmit.frac) ;
