@@ -197,5 +197,5 @@ void vSntpTask(void * pvPara) {
 }
 
 void vSntpStart(void * pvPara) {
-	xRtosTaskCreateStatic(vSntpTask, "SNTP", sntpSTACK_SIZE, pvPara, sntpPRIORITY, tsbSNTP, &ttsSNTP, tskNO_AFFINITY);
+	xRtosTaskCreateStatic(vSntpTask, "sntp", sntpSTACK_SIZE, pvPara, sntpPRIORITY, tsbSNTP, &ttsSNTP, tskNO_AFFINITY);
 }
