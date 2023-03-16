@@ -176,7 +176,7 @@ int xNtpGetTime(u64_t * pTStamp) {
  * vSntpTask()
  */
 void vSntpTask(void * pvPara) {
-	vTaskSetThreadLocalStoragePointer(NULL, 1, (void *)taskSNTP_MASK) ;
+	vTaskSetThreadLocalStoragePointer(NULL, buildFRTLSP_EVT_MASK, (void *)taskSNTP_MASK);
 	xRtosSetStateRUN(taskSNTP_MASK);
 	while (bRtosVerifyState(taskSNTP_MASK)) {
 		vRtosWaitStatus(flagLX_STA);
