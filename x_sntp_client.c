@@ -177,22 +177,22 @@ int xNtpGetTime(u64_t * pTStamp) {
  */
 void vSntpTask(void * pvPara) {
 	vTaskSetThreadLocalStoragePointer(NULL, 1, (void *)taskSNTP_MASK) ;
-	xRtosSetStateRUN(taskSNTP_MASK) ;
+	xRtosSetStateRUN(taskSNTP_MASK);
 	while (bRtosVerifyState(taskSNTP_MASK)) {
 		vRtosWaitStatus(flagLX_STA);
 		TickType_t NtpDelay, NtpLWtime = xTaskGetTickCount();
 		if (xNtpGetTime((u64_t *) pvPara) == erSUCCESS) {
-			halRTC_SetTime(*(u64_t *) pvPara) ;
-			xRtosSetStatus(flagNET_SNTP) ;
+			halRTC_SetTime(*(u64_t *) pvPara);
+			xRtosSetStatus(flagNET_SNTP);
 			NtpDelay = pdMS_TO_TICKS(sntpMS_REFRESH);
 		} else {
-			SL_ERR("Failed to update time") ;
+			SL_ERR("Failed to update time");
 			NtpDelay = pdMS_TO_TICKS(sntpMS_RETRY);
 		}
-		NtpLWtime = xTaskGetTickCount() - NtpLWtime ;
-		xRtosWaitStateDELETE(taskSNTP_MASK, NtpDelay - NtpLWtime) ;
+		NtpLWtime = xTaskGetTickCount() - NtpLWtime;
+		xRtosWaitStateDELETE(taskSNTP_MASK, NtpDelay - NtpLWtime);
 	}
-	xRtosClearStatus(flagNET_SNTP) ;
+	xRtosClearStatus(flagNET_SNTP);
 	vRtosTaskDelete(NULL);
 }
 
