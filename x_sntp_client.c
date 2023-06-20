@@ -179,7 +179,7 @@ void vSntpTask(void * pvPara) {
 	vTaskSetThreadLocalStoragePointer(NULL, buildFRTLSP_EVT_MASK, (void *)taskSNTP_MASK);
 	xRtosSetStateRUN(taskSNTP_MASK);
 	while (bRtosVerifyState(taskSNTP_MASK)) {
-		vRtosWaitStatus(flagLX_STA);
+		vRtosWaitStatus(flagL23_STA);
 		TickType_t NtpDelay, NtpLWtime = xTaskGetTickCount();
 		if (xNtpGetTime((u64_t *) pvPara) == erSUCCESS) {
 			halRTC_SetTime(*(u64_t *) pvPara);
