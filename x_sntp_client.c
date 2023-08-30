@@ -27,8 +27,6 @@
 
 // ############################################ Macros  ############################################
 
-#define	sntpSTACK_SIZE				(configMINIMAL_STACK_SIZE + 1762+ (flagSTACK * 256))
-#define	sntpPRIORITY				2
 #define sntpMS_REFRESH				(60 * SECONDS_IN_MINUTE * MILLIS_IN_SECOND)
 #define sntpMS_RETRY				(1 * SECONDS_IN_MINUTE * MILLIS_IN_SECOND)
 
