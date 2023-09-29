@@ -3,16 +3,16 @@
  * Copyright 2014-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
-#include <math.h>
+#include "hal_config.h"
 
+#include "hal_rtc.h"
 #include "x_sntp_client.h"
-#include "hal_variables.h"
 #include "printfx.h"									// +x_definitions +stdarg +stdint +stdio
 #include "socketsX.h"
 #include "syslog.h"
 #include "x_errors_events.h"
 
-#include "hal_rtc.h"
+#include <math.h>
 
 #define	debugFLAG					0xF000
 
