@@ -178,7 +178,7 @@ void vSntpTask(void * pvPara) {
 	xRtosTaskSetRUN(taskSNTP_MASK);
 	while (bRtosTaskWaitOK(taskSNTP_MASK, portMAX_DELAY)) {
 		TickType_t NtpDelay = 0, NtpLWtime = xTaskGetTickCount();
-		if (bRtosWaitStatusALL(flagLX_STA, pdMS_TO_TICKS(sntpMS_REFRESH - sntpMS_RETRY))) {
+		if (xRtosWaitStatus(flagLX_STA, pdMS_TO_TICKS(sntpMS_REFRESH - sntpMS_RETRY))) {
 			if (xNtpGetTime((u64_t *) pvPara) == erSUCCESS) {
 				halRTC_SetTime(*(u64_t *) pvPara);
 				xRtosSetStatus(flagNET_SNTP);
@@ -189,7 +189,7 @@ void vSntpTask(void * pvPara) {
 			}
 		}
 		NtpLWtime = xTaskGetTickCount() - NtpLWtime;
-		xRtosTaskWaitDELETE(taskSNTP_MASK, NtpDelay - NtpLWtime);
+		(void)xRtosTaskWaitDELETE(taskSNTP_MASK, NtpDelay - NtpLWtime);
 	}
 	xRtosClearStatus(flagNET_SNTP);
 	vRtosTaskDelete(NULL);
