@@ -175,7 +175,7 @@ int xNtpGetTime(u64_t * pTStamp) {
  */
 void vSntpTask(void * pvPara) {
 	vTaskSetThreadLocalStoragePointer(NULL, buildFRTLSP_EVT_MASK, (void *)taskSNTP_MASK);
-	xRtosTaskSetRUN(taskSNTP_MASK);
+	xRtosSetTaskRUN(taskSNTP_MASK);
 	while (bRtosTaskWaitOK(taskSNTP_MASK, portMAX_DELAY)) {
 		TickType_t NtpDelay = 0, NtpLWtime = xTaskGetTickCount();
 		if (xRtosWaitStatus(flagLX_STA, pdMS_TO_TICKS(sntpMS_REFRESH - sntpMS_RETRY))) {
@@ -189,7 +189,7 @@ void vSntpTask(void * pvPara) {
 			}
 		}
 		NtpLWtime = xTaskGetTickCount() - NtpLWtime;
-		(void)xRtosTaskWaitDELETE(taskSNTP_MASK, NtpDelay - NtpLWtime);
+		(void)xRtosWaitTaskDELETE(taskSNTP_MASK, NtpDelay - NtpLWtime);
 	}
 	xRtosClearStatus(flagNET_SNTP);
 	vRtosTaskDelete(NULL);
