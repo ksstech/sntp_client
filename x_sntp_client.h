@@ -1,20 +1,12 @@
-/*
- * x_sntp_client.h - Copyright (c) 2014-24 Andre M. Maree / KSS Technologies (Pty) Ltd.
- */
+// x_sntp_client.h
 
 #pragma once
-
-#include	"hal_config.h"
-#include	"FreeRTOS_Support.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// ###################################### BUILD : CONFIG definitions ###############################
-
-
-// ######################################## enumerations ###########################################
+// ######################################## Enumerations ###########################################
 
 enum {
 	specNTP_VERSION_V1				= 1,
