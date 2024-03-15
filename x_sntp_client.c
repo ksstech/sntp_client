@@ -1,9 +1,6 @@
-/*
- * x_sntp_client.c
- * Copyright 2014-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
- */
+// x_sntp_client.c - Copyright )c) 2014-24 Andre M. Maree / KSS Technologies (Pty) Ltd.
 
-#include "hal_config.h"
+#include "hal_platform.h"
 
 #include "hal_rtc.h"
 #include "x_sntp_client.h"
