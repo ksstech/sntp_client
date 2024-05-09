@@ -80,7 +80,7 @@ int	xNtpRequestInfo(netx_t * psNtpCtx, u64_t * pTStamp) {
 		SL_ERR("Host=%s  Mode=%d  Ver=%d  Stratum=%d", psNtpCtx->pHost, sNtpBuf.Mode, sNtpBuf.VN, sNtpBuf.Stratum);
    		return erFAILURE;
    	}
-	IF_P(debugHOSTS, "Sync'ing with host %s\r\n", NtpHostTable[NtpHostIndex]) ;
+	IF_PX(debugHOSTS, "Sync'ing with host %s\r\n", NtpHostTable[NtpHostIndex]);
 	return iRV;
 }
 
