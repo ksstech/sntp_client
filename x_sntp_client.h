@@ -38,13 +38,7 @@ enum {
 
 // #################################### NTP packet structures ######################################
 
-typedef union {
-	u64_t val;
-	struct {
-		u32_t secs;
-		u32_t frac;
-	};
-} ntp_ts_t;
+typedef union { u64_t val; struct { u32_t secs; u32_t frac; }; } ntp_ts_t;
 
 /************************ NTP packet structure **********************
 	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -73,7 +67,7 @@ typedef union {
 0x34|                 Message Digest (optional) (128)               |
 	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     Getting the data from the Transmit Timestamp (seconds) field
-This is the time at which the reply departed the server for the client
+	This is the time at which the reply departed the server for the client
 	https://www.meinbergglobal.com/english/info/ntp-packet.htm
 	https://tools.ietf.org/html/rfc5905									*/
 
@@ -101,7 +95,7 @@ typedef	struct __attribute__((__packed__)) {
 	ntp_ts_t Ref;
 	ntp_ts_t Orig;
 	ntp_ts_t Recv;
-	ntp_ts_t Xmit;
+	ntp_ts_t Xmit;					
 //	Only used with authorisation ...
 //	u32_t	KeyID;
 //	u32_t	MessDigest[4];
@@ -111,8 +105,7 @@ typedef	struct __attribute__((__packed__)) {
 
 // ############################### Level 2 network functions #######################################
 
-int xNtpGetTime(u64_t *);
-void vSntpStart(void *);
+void vSntpStart(void * pTStamp);
 
 #ifdef __cplusplus
 }
