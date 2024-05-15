@@ -132,8 +132,7 @@ void vSntpTask(void * pTStamp) {
 			TimeNew = tNTP[0] + tRTD + tOFF;			// save the new time
 			halRTC_SetTime(*(u64_t*)pTStamp = TimeNew);	// Immediately make available for use
 			xRtosSetStatus(flagNET_SNTP);
-//			SL_NOT("%s(%#-I) %.6R -> %.6R ADJ=%'llduS OFF=%'llduS RTD=%'llduS", NtpHostTable[NtpHostIndex], sNtpCtx.sa_in.sin_addr.s_addr, TimeOld, TimeNew, TimeNew-TimeOld, tOFF, tRTD);
-			SL_NOT("%s(%#-I)  %.6R  Adj=%+'llduS", NtpHostTable[NtpHostIndex], sNtpCtx.sa_in.sin_addr.s_addr, TimeNew, tOFF - tRTD);
+			SL_NOT("%s(%#-I)  %.6R  Adj=%!.6R", NtpHostTable[NtpHostIndex], sNtpCtx.sa_in.sin_addr.s_addr, TimeNew, tOFF - tRTD);
 
 			#if (debugPROTOCOL)
 			const char * const LI_mess[] = { "None", "61Sec", "59Sec", "Alarm" };
