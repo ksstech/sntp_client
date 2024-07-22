@@ -37,10 +37,6 @@ u64_t TimeOld, TimeNew;
 i64_t tRTD, tOFF;
 int NtpHostIndex = 0;
 
-const char * const NtpHostTable[] = {
-	"0.pool.ntp.org",	"1.pool.ntp.org",	"2.pool.ntp.org",	"3.pool.ntp.org",
-};
-
 /**
  * @brief	convert NTP epoch NETWORK seconds/fractions to UNIX epoch HOST microseconds
  * @return
@@ -80,7 +76,6 @@ int	xNtpRequestInfo(netx_t * psNtpCtx, u64_t * pTStamp) {
 		SL_ERR("Host=%s  Mode=%d  Ver=%d  Stratum=%d", psNtpCtx->pHost, sNtpBuf.Mode, sNtpBuf.VN, sNtpBuf.Stratum);
    		return erFAILURE;
    	}
-	IF_PX(debugHOSTS, "Sync'ing with host %s\r\n", NtpHostTable[NtpHostIndex]);
 	return iRV;
 }
 
@@ -103,9 +98,15 @@ void vSntpTask(void * pTStamp) {
 		if (xRtosWaitStatus(flagLX_STA, pdMS_TO_TICKS(sntpMS_REFRESH - sntpMS_RETRY))) {
 			// Find next host to connect to, connect and get SNTP info
 			// Will stay in this loop as long as not successful connecting AND getting info
+			char caHostName[24];
 			for (iRV = -1; iRV != sizeof(ntp_t); ) {
-				sNtpCtx.pHost	= NtpHostTable[NtpHostIndex];
-				IF_PX(debugHOSTS, "Connecting to host %s\r\n", sNtpCtx.pHost);
+				if (sNVSvars.GeoCode[0]) {
+					snprintfx(caHostName, sizeof(caHostName), "%d.%>s.pool.ntp.org", NtpHostIndex, sNVSvars.GeoCode);
+				} else {
+					snprintfx(caHostName, sizeof(caHostName), "%d.pool.ntp.org", NtpHostIndex);
+				}
+				sNtpCtx.pHost = caHostName;
+				IF_PX(debugHOSTS, "Connecting to host %s" strNL, sNtpCtx.pHost);
 				iRV = xNetOpen(&sNtpCtx);
 				if (iRV >= erSUCCESS)
 					iRV = xNtpRequestInfo(&sNtpCtx, pTStamp);	// send the sNtpBuf request & check the result
@@ -114,7 +115,7 @@ void vSntpTask(void * pTStamp) {
 					break;
 				vTaskDelay(pdMS_TO_TICKS(1000));		// wait 1 seconds
 				++NtpHostIndex;
-				NtpHostIndex %= NO_MEM(NtpHostTable);	// failed, step to next host...
+				NtpHostIndex %= 4;						// failed, step to next host...
 			}
 			// end of loop, must have a valid HOST and response, calculate the time...
 			tNTP[0]	= xNTPCalcValue(sNtpBuf.Orig.secs , sNtpBuf.Orig.frac);
@@ -132,7 +133,7 @@ void vSntpTask(void * pTStamp) {
 			TimeNew = tNTP[0] + tRTD + tOFF;			// save the new time
 			halRTC_SetTime(*(u64_t*)pTStamp = TimeNew);	// Immediately make available for use
 			xRtosSetStatus(flagNET_SNTP);
-			SL_NOT("%s(%#-I)  %.6R  Adj=%!.6R", NtpHostTable[NtpHostIndex], sNtpCtx.sa_in.sin_addr.s_addr, TimeNew, tOFF - tRTD);
+			SL_NOT("%s(%#-I)  %.6R  Adj=%!.6R", caHostName, sNtpCtx.sa_in.sin_addr.s_addr, TimeNew, tOFF - tRTD);
 
 			#if (debugPROTOCOL)
 			const char * const LI_mess[] = { "None", "61Sec", "59Sec", "Alarm" };
