@@ -163,9 +163,9 @@ void vSntpTask(void * pTStamp) {
 		(void)xRtosWaitTaskDELETE(taskSNTP_MASK, NtpDelay - NtpLWtime);
 	}
 	xRtosClearStatus(flagNET_SNTP);
-	vRtosTaskDelete(NULL);
+	vTaskDelete(NULL);
 }
 
 void vSntpStart(void * pTStamp) {
-	xRtosTaskCreateStatic(vSntpTask, "sntp", sntpSTACK_SIZE, pTStamp, sntpPRIORITY, tsbSNTP, &ttsSNTP, tskNO_AFFINITY);
+	xTaskCreateStaticPinnedToCore(vSntpTask, "sntp", sntpSTACK_SIZE, pTStamp, sntpPRIORITY, tsbSNTP, &ttsSNTP, tskNO_AFFINITY);
 }
