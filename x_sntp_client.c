@@ -43,7 +43,7 @@ int NtpHostIndex = 0;
  */
 u64_t xNTPCalcValue(u32_t Secs, u32_t Frac) {
 	u64_t u64Val1 = ntohl(Secs) - EPOCH_SECONDS_DIFFERENCE;	// difference between NTP and selected epoch
-	u64Val1 *= MICROS_IN_SECOND;						// convert Secs to uSec
+	u64Val1 *= MICROS_IN_SECOND;							// convert Secs to uSec
 	u64_t u64Val2 = ntohl(Frac) / FRACTIONS_PER_MICROSEC;	// convert Frac to uSec
 	return u64Val1 + u64Val2;
 }
@@ -73,7 +73,7 @@ int	xNtpRequestInfo(netx_t * psNtpCtx, u64_t * pTStamp) {
 	// expect only server type responses with correct version and stratum
 	if (sNtpBuf.Mode != specNTP_MODE_SERVER || sNtpBuf.VN != specNTP_VERSION_V4 ||
 		OUTSIDE(specNTP_STRATUM_PRI, sNtpBuf.Stratum, specNTP_STRATUM_SEC_HI)) {
-		SL_ERR("Host=%s  Mode=%d  Ver=%d  Stratum=%d", psNtpCtx->pHost, sNtpBuf.Mode, sNtpBuf.VN, sNtpBuf.Stratum);
+		SL_ERR("Host=%s  Mode=%d  Ver=%d  Stratum=1/%d/15", psNtpCtx->pHost, sNtpBuf.Mode, sNtpBuf.VN, sNtpBuf.Stratum);
    		return erFAILURE;
    	}
 	return iRV;
