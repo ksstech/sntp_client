@@ -64,18 +64,17 @@ int	xNtpRequestInfo(netx_t * psNtpCtx, u64_t * pTStamp) {
 	sNtpBuf.Xmit.frac = htonl((TimeOld % MICROS_IN_SECOND) * FRACTIONS_PER_MICROSEC);
 	// send the formatted request
 	int iRV = xNetSend(psNtpCtx, (u8_t *) &sNtpBuf, sizeof(ntp_t));
-	if (iRV == sizeof(ntp_t)) {
-		xNetSetRecvTO(psNtpCtx, 400);
-		iRV = xNetRecv(psNtpCtx, (u8_t *) &sNtpBuf, sizeof(ntp_t));
-	}
-	if (iRV != sizeof(ntp_t))
-		return iRV;
+	if (iRV != sizeof(ntp_t)) goto exit;
+	xNetSetRecvTO(psNtpCtx, 400);
+	iRV = xNetRecv(psNtpCtx, (u8_t *) &sNtpBuf, sizeof(ntp_t));
+	if (iRV != sizeof(ntp_t)) goto exit;
 	// expect only server type responses with correct version and stratum
 	if (sNtpBuf.Mode != specNTP_MODE_SERVER || sNtpBuf.VN != specNTP_VERSION_V4 ||
 		OUTSIDE(specNTP_STRATUM_PRI, sNtpBuf.Stratum, specNTP_STRATUM_SEC_HI)) {
 		SL_ERR("Host=%s  Mode=%d  Ver=%d  Stratum=1/%d/15", psNtpCtx->pHost, sNtpBuf.Mode, sNtpBuf.VN, sNtpBuf.Stratum);
    		return erFAILURE;
    	}
+exit:
 	return iRV;
 }
 
