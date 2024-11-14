@@ -14,9 +14,6 @@
 // ############################################ Macros  ############################################
 
 #define	debugFLAG					0xF000
-#define	debugPROTOCOL				(debugFLAG & 0x0001)
-#define	debugHOSTS					(debugFLAG & 0x0002)
-#define	debugCALCULATION			(debugFLAG & 0x0004)
 #define	debugTIMING					(debugFLAG_GLOBAL & debugFLAG & 0x1000)
 #define	debugTRACK					(debugFLAG_GLOBAL & debugFLAG & 0x2000)
 #define	debugPARAM					(debugFLAG_GLOBAL & debugFLAG & 0x4000)
@@ -25,7 +22,9 @@
 #define sntpMS_REFRESH				(60 * SECONDS_IN_MINUTE * MILLIS_IN_SECOND)
 #define sntpMS_RETRY				(1 * SECONDS_IN_MINUTE * MILLIS_IN_SECOND)
 
-#define	STRATUM_IDX(x)	((x >= specNTP_STRATUM_RSVD_LO) ? 4 : (x == specNTP_STRATUM_UNSYNC)	? 3 : (x >= specNTP_STRATUM_SEC_LO)	? 2 : x )
+#define	STRATUM_IDX(x)				((x >= specNTP_STRATUM_RSVD_LO) ? 4 : \
+									(x == specNTP_STRATUM_UNSYNC)	? 3 : \
+									(x >= specNTP_STRATUM_SEC_LO)	? 2 : x )
 
 // ###################################### local ie static variables ################################
 
@@ -89,7 +88,6 @@ void vSntpTask(void * pTStamp) {
 	sNtpCtx.sa_in.sin_port = htons(IP_PORT_NTP);
 	sNtpCtx.type = SOCK_DGRAM;
 	sNtpCtx.flags = SO_REUSEADDR;
-	//sNtpCtx.d = (netx_dbg_t) * { .o=1, .w=1, .r=1, .d=1, .ea=1 };
 	vTaskSetThreadLocalStoragePointer(NULL, buildFRTLSP_EVT_MASK, (void *)taskSNTP_MASK);
 	xRtosSetTaskRUN(taskSNTP_MASK);
 	while (bRtosTaskWaitOK(taskSNTP_MASK, portMAX_DELAY)) {
