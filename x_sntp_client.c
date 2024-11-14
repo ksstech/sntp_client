@@ -100,7 +100,6 @@ void vSntpTask(void * pTStamp) {
 				if (sNVSvars.GeoCode[0] == 0) snprintfx(caHostName, sizeof(caHostName), "%d.pool.ntp.org", NtpHostIndex);
 				else 	snprintfx(caHostName, sizeof(caHostName), "%d.%>s.pool.ntp.org", NtpHostIndex, sNVSvars.GeoCode);
 				sNtpCtx.pHost = caHostName;
-//				PT("Connecting to host %s" strNL, sNtpCtx.pHost);
 				iRV = xNetOpen(&sNtpCtx);				// Initiate NTP session, if successful, send request
 				if (iRV > erFAILURE) iRV = xNtpRequestInfo(&sNtpCtx, pTStamp);
 				xNetClose(&sNtpCtx);					// close the session
@@ -127,7 +126,6 @@ void vSntpTask(void * pTStamp) {
 			// Houston, we have updated time...
 			TimeNew = tNTP[0] + tRTD + tOFF;			// save the new time
 			halRTC_SetTime(*(u64_t*)pTStamp = TimeNew);	// Immediately make available for use
-			xRtosSetStatus(flagNET_SNTP);
 		}
 		SL_NOT("%s(%#-I)  %.6R  Adj=%!.6R", caHostName, sNtpCtx.sa_in.sin_addr.s_addr, TimeNew, tOFF - tRTD);
 		{	// generate debug output
@@ -153,7 +151,6 @@ void vSntpTask(void * pTStamp) {
 		}
 		(void)xRtosWaitTaskDELETE(taskSNTP_MASK, pdMS_TO_TICKS(sntpMS_REFRESH) - (xTaskGetTickCount() - NtpLWtime));
 	}
-	xRtosClearStatus(flagNET_SNTP);
 	vTaskDelete(NULL);
 }
 
