@@ -21,6 +21,7 @@
 
 #define sntpMS_REFRESH				(60 * SECONDS_IN_MINUTE * MILLIS_IN_SECOND)
 #define sntpMS_RETRY				(1 * SECONDS_IN_MINUTE * MILLIS_IN_SECOND)
+#define sntpMS_LX_STA				(500)
 
 #define	STRATUM_IDX(x)				((x >= specNTP_STRATUM_RSVD_LO) ? 4 : \
 									(x == specNTP_STRATUM_UNSYNC)	? 3 : \
@@ -83,6 +84,7 @@ exit:
 void vSntpTask(void * pTStamp) {
 	int iRV;
 	u64_t tNTP[3];
+	char caHostName[24];
 	netx_t sNtpCtx = { 0 };
 	sNtpCtx.sa_in.sin_family = AF_INET;
 	sNtpCtx.sa_in.sin_port = htons(IP_PORT_NTP);
@@ -91,50 +93,43 @@ void vSntpTask(void * pTStamp) {
 	vTaskSetThreadLocalStoragePointer(NULL, buildFRTLSP_EVT_MASK, (void *)taskSNTP_MASK);
 	xRtosSetTaskRUN(taskSNTP_MASK);
 	while (bRtosTaskWaitOK(taskSNTP_MASK, portMAX_DELAY)) {
-		TickType_t NtpDelay = 0, NtpLWtime = xTaskGetTickCount();
-		if (xRtosWaitStatus(flagLX_STA, pdMS_TO_TICKS(sntpMS_REFRESH - sntpMS_RETRY))) {
-			// Find next host to connect to, connect and get SNTP info
-			// Will stay in this loop as long as not successful connecting AND getting info
-			char caHostName[24];
-			for (iRV = -1; iRV != sizeof(ntp_t); ) {
-				if (sNVSvars.GeoCode[0]) {
-					snprintfx(caHostName, sizeof(caHostName), "%d.%>s.pool.ntp.org", NtpHostIndex, sNVSvars.GeoCode);
-				} else {
-					snprintfx(caHostName, sizeof(caHostName), "%d.pool.ntp.org", NtpHostIndex);
-				}
+		do {	// wait till LX_STA is OK
+			iRV = 0;
+			if (xRtosWaitStatus(flagLX_STA, pdMS_TO_TICKS(sntpMS_LX_STA))) {
+				// Select NTP host, connect & get NTP info
+				if (sNVSvars.GeoCode[0] == 0) snprintfx(caHostName, sizeof(caHostName), "%d.pool.ntp.org", NtpHostIndex);
+				else 	snprintfx(caHostName, sizeof(caHostName), "%d.%>s.pool.ntp.org", NtpHostIndex, sNVSvars.GeoCode);
 				sNtpCtx.pHost = caHostName;
-				IF_PX(debugHOSTS, "Connecting to host %s" strNL, sNtpCtx.pHost);
-				iRV = xNetOpen(&sNtpCtx);
-				if (iRV >= erSUCCESS)
-					iRV = xNtpRequestInfo(&sNtpCtx, pTStamp);	// send the sNtpBuf request & check the result
-				xNetClose(&sNtpCtx);					// close, & ignore return code..
-				if (iRV == sizeof(ntp_t))				// Got a valid packet, HOORAY !
-					break;
-				vTaskDelay(pdMS_TO_TICKS(1000));		// wait 1 seconds
-				++NtpHostIndex;
-				NtpHostIndex %= 4;						// failed, step to next host...
-			}
-			{	// end of loop, must have a valid HOST and response, calculate the time...
-				tNTP[0]	= xNTPCalcValue(sNtpBuf.Orig.secs , sNtpBuf.Orig.frac);
-				tNTP[1]	= xNTPCalcValue(sNtpBuf.Recv.secs , sNtpBuf.Recv.frac);
-				tNTP[2]	= xNTPCalcValue(sNtpBuf.Xmit.secs , sNtpBuf.Xmit.frac);
-				// Calculate the Round Trip Delay
-				i64_t tT0 = TimeOld - tNTP[0];
-				i64_t tT1 = tNTP[2] - tNTP[1];
-				tRTD = tT0 - tT1;
-				// Then do the Offset in steps...
-				tT0 = tNTP[1] - tNTP[0];
-				tT1 = tNTP[2] - TimeOld;
-				tOFF = (tT0 + tT1) / 2;
-				// Houston, we have updated time...
-				TimeNew = tNTP[0] + tRTD + tOFF;			// save the new time
-				halRTC_SetTime(*(u64_t*)pTStamp = TimeNew);	// Immediately make available for use
-				xRtosSetStatus(flagNET_SNTP);
-				SL_NOT("%s(%#-I)  %.6R  Adj=%!.6R", caHostName, sNtpCtx.sa_in.sin_addr.s_addr, TimeNew, tOFF - tRTD);
-			}
+//				PT("Connecting to host %s" strNL, sNtpCtx.pHost);
+				iRV = xNetOpen(&sNtpCtx);				// Initiate NTP session, if successful, send request
+				if (iRV > erFAILURE) iRV = xNtpRequestInfo(&sNtpCtx, pTStamp);
+				xNetClose(&sNtpCtx);					// close the session
+				if (iRV != sizeof(ntp_t)) {				// invalid packet, delay then step to next host
+					vTaskDelay(pdMS_TO_TICKS(sntpMS_RETRY));
+					++NtpHostIndex;
+					NtpHostIndex %= 4;
 				}
-			}
-			NtpDelay = pdMS_TO_TICKS(sntpMS_REFRESH);
+			}											// END xRtosWaitStatus()
+		} while(iRV != sizeof(ntp_t));
+		TickType_t NtpLWtime = xTaskGetTickCount();		// save ticks at start of run
+		{	// have a valid HOST and response, calculate the time...
+			tNTP[0]	= xNTPCalcValue(sNtpBuf.Orig.secs, sNtpBuf.Orig.frac);
+			tNTP[1]	= xNTPCalcValue(sNtpBuf.Recv.secs, sNtpBuf.Recv.frac);
+			tNTP[2]	= xNTPCalcValue(sNtpBuf.Xmit.secs, sNtpBuf.Xmit.frac);
+			// Calculate the Round Trip Delay
+			i64_t tT0 = TimeOld - tNTP[0];
+			i64_t tT1 = tNTP[2] - tNTP[1];
+			tRTD = tT0 - tT1;
+			// Then do the Offset in steps...
+			tT0 = tNTP[1] - tNTP[0];
+			tT1 = tNTP[2] - TimeOld;
+			tOFF = (tT0 + tT1) / 2;
+			// Houston, we have updated time...
+			TimeNew = tNTP[0] + tRTD + tOFF;			// save the new time
+			halRTC_SetTime(*(u64_t*)pTStamp = TimeNew);	// Immediately make available for use
+			xRtosSetStatus(flagNET_SNTP);
+		}
+		SL_NOT("%s(%#-I)  %.6R  Adj=%!.6R", caHostName, sNtpCtx.sa_in.sin_addr.s_addr, TimeNew, tOFF - tRTD);
 		{	// generate debug output
 		#if 0
 			const char * const LI_mess[] = { "None", "61Sec", "59Sec", "Alarm" };
@@ -156,8 +151,7 @@ void vSntpTask(void * pTStamp) {
 			wprintfx(NULL, "[NTP] (t3) %.6R" strNL, tNTP[3]);
 		#endif
 		}
-		NtpLWtime = xTaskGetTickCount() - NtpLWtime;
-		(void)xRtosWaitTaskDELETE(taskSNTP_MASK, NtpDelay - NtpLWtime);
+		(void)xRtosWaitTaskDELETE(taskSNTP_MASK, pdMS_TO_TICKS(sntpMS_REFRESH) - (xTaskGetTickCount() - NtpLWtime));
 	}
 	xRtosClearStatus(flagNET_SNTP);
 	vTaskDelete(NULL);
