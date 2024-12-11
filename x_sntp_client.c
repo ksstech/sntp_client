@@ -154,6 +154,15 @@ void vSntpTask(void * pTStamp) {
 	vTaskDelete(NULL);
 }
 
-void vSntpStart(void * pTStamp) {
-	xTaskCreateStaticPinnedToCore(vSntpTask, "sntp", sntpSTACK_SIZE, pTStamp, sntpPRIORITY, tsbSNTP, &ttsSNTP, tskNO_AFFINITY);
-}
+task_param_t sSntpParam = {
+	.pxTaskCode = vSntpTask,
+	.pcName = "sntp",
+	.usStackDepth = sntpSTACK_SIZE,
+	.uxPriority = sntpPRIORITY,
+	.pxStackBuffer = tsbSNTP,
+	.pxTaskBuffer = &ttsSNTP,
+	.xCoreID = tskNO_AFFINITY,
+	.xMask = taskSNTP_MASK,
+};
+
+void vSntpStart(void * pTStamp) { xTaskCreateWithMask(&sSntpParam, pTStamp); }
