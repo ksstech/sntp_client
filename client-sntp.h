@@ -1,4 +1,4 @@
-// x_sntp_client.h
+// client-sntp.h
 
 #pragma once
 
@@ -105,7 +105,19 @@ typedef	struct __attribute__((__packed__)) {
 
 // ############################### Level 2 network functions #######################################
 
+/**
+ * @brief		Update current UTC time using SNTP protocol
+ * @param[in]	pTStamp pointer to u64_t time value to be updated
+ */
 void vSntpStart(void * pTStamp);
+
+/**
+ * @brief		generate report on SNTP client timing status
+ * @param[in]	psR pointer to report structure
+ * @return		Number of characters output
+ */
+
+int xSntpReport(struct report_t * psR);
 
 #ifdef __cplusplus
 }

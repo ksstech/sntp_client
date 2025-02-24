@@ -1,9 +1,9 @@
-// x_sntp_client.c - Copyright )c) 2014-24 Andre M. Maree / KSS Technologies (Pty) Ltd.
+// client-sntp.c - Copyright )c) 2014-25 Andre M. Maree / KSS Technologies (Pty) Ltd.
 
 #include "hal_platform.h"
 
+#include "client-sntp.h"
 #include "hal_rtc.h"
-#include "x_sntp_client.h"
 #include "printfx.h"									// +x_definitions +stdarg +stdint +stdio
 #include "socketsX.h"
 #include "syslog.h"
@@ -14,6 +14,7 @@
 // ############################################ Macros  ############################################
 
 #define	debugFLAG					0xF000
+#define debugSTATS					(debugFLAG & 0x0001)
 #define	debugTIMING					(debugFLAG_GLOBAL & debugFLAG & 0x1000)
 #define	debugTRACK					(debugFLAG_GLOBAL & debugFLAG & 0x2000)
 #define	debugPARAM					(debugFLAG_GLOBAL & debugFLAG & 0x4000)
@@ -21,6 +22,7 @@
 
 #define sntpMS_REFRESH				(60 * SECONDS_IN_MINUTE * MILLIS_IN_SECOND)
 #define sntpMS_RETRY				(1 * SECONDS_IN_MINUTE * MILLIS_IN_SECOND)
+#define sntpMS_CHECK				(1 * MILLIS_IN_SECOND)
 
 #define	STRATUM_IDX(x)				((x >= specNTP_STRATUM_RSVD_LO) ? 4 : \
 									(x == specNTP_STRATUM_UNSYNC)	? 3 : \
@@ -35,6 +37,7 @@ ntp_t sNtpBuf;
 u64_t TimeOld, TimeNew;
 i64_t tRTD, tOFF;
 int NtpHostIndex = 0;
+static TickType_t TickNow = 0, TickLastRun = 0, TickNextRun = 0;
 
 /**
  * @brief	convert NTP epoch NETWORK seconds/fractions to UNIX epoch HOST microseconds
@@ -80,7 +83,7 @@ exit:
 /**
  * @brief	Starts the SNTP task
  */
-void vSntpTask(void * pTStamp) {
+static void vSntpTask(void * pTStamp) {
 	int iRV;
 	u64_t tNTP[3];
 	char caHostName[24];
@@ -90,26 +93,26 @@ void vSntpTask(void * pTStamp) {
 	sNtpCtx.type = SOCK_DGRAM;
 	sNtpCtx.flags = SO_REUSEADDR;
 
-	TickType_t TickNow = 0, TickNextRun = 0;
-	halEventUpdateRunTasks(taskSNTP_MASK, 1);
-	while (bRtosTaskWaitOK(taskSNTP_MASK, portMAX_DELAY)) {
-		if (xRtosWaitStat0(flagLX_STA, pdMS_TO_TICKS(sntpMS_RETRY)) == 0)
+	halEventUpdateRunTasks(0, 1);
+	while (halEventWaitTasksOK(0, portMAX_DELAY)) {
+		if (halEventWaitStatus(flagLX_STA, pdMS_TO_TICKS(sntpMS_RETRY)) == 0)
 			continue;
 		TickNow = xTaskGetTickCount();					// single reference time for update timing
 		if (TickNow < TickNextRun) {
-			vTaskDelay(pdMS_TO_TICKS(sntpMS_RETRY));
+			vTaskDelay(pdMS_TO_TICKS(sntpMS_CHECK));
 			continue;
 		}
-		TickNextRun = TickNow + pdMS_TO_TICKS(sntpMS_REFRESH);
+		TickLastRun = TickNow;
+		TickNextRun = TickLastRun + pdMS_TO_TICKS(sntpMS_REFRESH);
 		do {
 			iRV = 0;
 			// Select NTP host
-			if (sNVSvars.GeoCode[0] == 0) snprintfx(caHostName, sizeof(caHostName), "%d.pool.ntp.org", NtpHostIndex);
-			else snprintfx(caHostName, sizeof(caHostName), "%d.%>s.pool.ntp.org", NtpHostIndex, sNVSvars.GeoCode);
+			snprintfx(caHostName, sizeof(caHostName), sNVSvars.GeoCode[0] ? "%d.%>s.pool.ntp.org" : "%d.pool.ntp.org", NtpHostIndex, sNVSvars.GeoCode);
 			sNtpCtx.pHost = caHostName;
 			// Connect to selected host
 			iRV = xNetOpen(&sNtpCtx);				// Initiate NTP session, if successful, send request				// If connected request SNTP info
-			if (iRV > erFAILURE) iRV = xNtpRequestInfo(&sNtpCtx, pTStamp);
+			if (iRV > erFAILURE)
+				iRV = xNtpRequestInfo(&sNtpCtx, pTStamp);
 			xNetClose(&sNtpCtx);					// close the session
 			// if an invalid packet received, delay then step to next host
 			if (iRV != sizeof(ntp_t)) {
@@ -136,7 +139,7 @@ void vSntpTask(void * pTStamp) {
 			SL_NOT("%s(%#-I)  %.6R  Adj=%!.6R", caHostName, sNtpCtx.sa_in.sin_addr.s_addr, TimeNew, tOFF - tRTD);
 		}
 		{	// generate debug output
-		#if 0
+		#if debugSTATS
 			const char * const LI_mess[] = { "None", "61Sec", "59Sec", "Alarm" };
 			const char * const Mode_mess[] = { "Unspec", "SymAct", "SymPas", "Client", "Server", "BCast", "RsvdNTP", "RsvdPriv" };
 			const char * const Strat_mess[] = { "KofD", "Prim", "Sec", "UnSync" , "Rsvd" };
@@ -160,15 +163,20 @@ void vSntpTask(void * pTStamp) {
 	vTaskDelete(NULL);
 }
 
-task_param_t sSntpParam = {
-	.pxTaskCode = vSntpTask,
-	.pcName = "sntp",
-	.usStackDepth = sntpSTACK_SIZE,
-	.uxPriority = sntpPRIORITY,
-	.pxStackBuffer = tsbSNTP,
-	.pxTaskBuffer = &ttsSNTP,
-	.xCoreID = tskNO_AFFINITY,
-	.xMask = taskSNTP_MASK,
-};
+void vSntpStart(void * pTStamp) {
+	const task_param_t sSntpParam = {
+		.pxTaskCode = vSntpTask,
+		.pcName = "sntp",
+		.usStackDepth = sntpSTACK_SIZE,
+		.uxPriority = sntpPRIORITY,
+		.pxStackBuffer = tsbSNTP,
+		.pxTaskBuffer = &ttsSNTP,
+		.xCoreID = tskNO_AFFINITY,
+		.xMask = taskSNTP_MASK,
+	};
+	xTaskCreateWithMask(&sSntpParam, pTStamp); 
+}
 
-void vSntpStart(void * pTStamp) { xTaskCreateWithMask(&sSntpParam, pTStamp); }
+int xSntpReport(report_t * psR) {
+	return wprintfx(psR, "%CSNTPC%C\tLast=%lu  Now=%lu  Next=%lu" strNL,xpfCOL(colourFG_CYAN,0), xpfCOL(attrRESET,0), TickLastRun, TickNow, TickNextRun);
+}

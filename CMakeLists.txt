@@ -1,5 +1,5 @@
 # SNTP CLIENT
-set( srcs "x_sntp_client.c" )
+set( srcs "client-sntp.c" )
 set( include_dirs "." )
 set( requires "main" )
 set( priv_requires )
