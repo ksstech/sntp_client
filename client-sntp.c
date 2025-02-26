@@ -66,14 +66,18 @@ int	xNtpRequestInfo(netx_t * psNtpCtx, u64_t * pTStamp) {
 	sNtpBuf.Xmit.frac = htonl((TimeOld % MICROS_IN_SECOND) * FRACTIONS_PER_MICROSEC);
 	// send the formatted request
 	int iRV = xNetSend(psNtpCtx, (u8_t *) &sNtpBuf, sizeof(ntp_t));
-	if (iRV != sizeof(ntp_t)) goto exit;
+	if (iRV != sizeof(ntp_t))
+		goto exit;
 	xNetSetRecvTO(psNtpCtx, 400);
 	iRV = xNetRecv(psNtpCtx, (u8_t *) &sNtpBuf, sizeof(ntp_t));
-	if (iRV != sizeof(ntp_t)) goto exit;
+	if (iRV != sizeof(ntp_t))
+		goto exit;
 	// expect only server type responses with correct version and stratum
-	if (sNtpBuf.Mode != specNTP_MODE_SERVER || sNtpBuf.VN != specNTP_VERSION_V4 ||
-		OUTSIDE(specNTP_STRATUM_PRI, sNtpBuf.Stratum, specNTP_STRATUM_SEC_HI)) {
-		SL_ERR("Host=%s  Mode=%d  Ver=%d  Stratum=1/%d/15", psNtpCtx->pHost, sNtpBuf.Mode, sNtpBuf.VN, sNtpBuf.Stratum);
+	if ((sNtpBuf.Mode != specNTP_MODE_SERVER) || 		/* Invalid mode */
+		(sNtpBuf.VN != specNTP_VERSION_V4) ||			/* Invalid version */
+		OUTSIDE(specNTP_STRATUM_PRI, sNtpBuf.Stratum, specNTP_STRATUM_SEC_HI)) {	/* Stratum out of range */
+		SL_ERR("Host=%s (%#-I) Mode=%d  Ver=%d  Stratum=1/%d/15", psNtpCtx->pHost,
+			psNtpCtx->sa_in.sin_addr.s_addr, sNtpBuf.Mode, sNtpBuf.VN, sNtpBuf.Stratum);
    		return erFAILURE;
    	}
 exit:
@@ -106,16 +110,13 @@ static void vSntpTask(void * pTStamp) {
 		TickNextRun = TickLastRun + pdMS_TO_TICKS(sntpMS_REFRESH);
 		do {
 			iRV = 0;
-			// Select NTP host
 			snprintfx(caHostName, sizeof(caHostName), sNVSvars.GeoCode[0] ? "%d.%>s.pool.ntp.org" : "%d.pool.ntp.org", NtpHostIndex, sNVSvars.GeoCode);
-			sNtpCtx.pHost = caHostName;
-			// Connect to selected host
-			iRV = xNetOpen(&sNtpCtx);				// Initiate NTP session, if successful, send request				// If connected request SNTP info
-			if (iRV > erFAILURE)
+			sNtpCtx.pHost = caHostName;					/* Select NTP host */
+			iRV = xNetOpen(&sNtpCtx);					/* Connect to selected host */
+			if (iRV > erFAILURE)						/* If connected request SNTP info */
 				iRV = xNtpRequestInfo(&sNtpCtx, pTStamp);
-			xNetClose(&sNtpCtx);					// close the session
-			// if an invalid packet received, delay then step to next host
-			if (iRV != sizeof(ntp_t)) {
+			xNetClose(&sNtpCtx);						/* close the session */
+			if (iRV != sizeof(ntp_t)) {					/* invalid packet received, delay then step to next host */
 				vTaskDelay(pdMS_TO_TICKS(sntpMS_RETRY));
 				++NtpHostIndex;					
 				NtpHostIndex %= 4;
@@ -149,8 +150,10 @@ static void vSntpTask(void * pTStamp) {
 				pow(2, (double) sNtpBuf.Poll), pow(2, (double) sNtpBuf.Precision) * 1000000);
 			wprintfx(NULL, "[NTP] Root Delay[%d.%04d Sec]" strNL, ntohs(sNtpBuf.RDelUnit), ntohs(sNtpBuf.RDelFrac) / (UINT16_MAX/10000));
 			wprintfx(NULL, "[NTP] Dispersion[%u.%04u Sec]" strNL, ntohs(sNtpBuf.RDisUnit), ntohs(sNtpBuf.RDisFrac) / (UINT16_MAX/10000));
-			if (sNtpBuf.Stratum <= specNTP_STRATUM_PRI)	wprintfx(NULL, "[NTP] Ref ID[%4s]" strNL, &sNtpBuf.RefID);
-			else										wprintfx(NULL, "[NTP] Ref IP[%-I]" strNL, sNtpBuf.RefIP);
+			if (sNtpBuf.Stratum <= specNTP_STRATUM_PRI)
+				wprintfx(NULL, "[NTP] Ref ID[%4s]" strNL, &sNtpBuf.RefID);
+			else
+				wprintfx(NULL, "[NTP] Ref IP[%-I]" strNL, sNtpBuf.RefIP);
 			// determine and display the reference timestamp
 			wprintfx(NULL, "[NTP] Ref: %.6R" strNL, xNTPCalcValue(sNtpBuf.Ref.secs, sNtpBuf.Ref.frac));
 			wprintfx(NULL, "[NTP] (t0) %.6R" strNL, tNTP[0]);
@@ -178,5 +181,5 @@ void vSntpStart(void * pTStamp) {
 }
 
 int xSntpReport(report_t * psR) {
-	return wprintfx(psR, "%CSNTPC%C\tLast=%lu  Now=%lu  Next=%lu" strNL,xpfCOL(colourFG_CYAN,0), xpfCOL(attrRESET,0), TickLastRun, TickNow, TickNextRun);
+	return wprintfx(psR, "%CSNTP_C%C\tLast=%lu  Now=%lu  Next=%lu" strNL,xpfCOL(colourFG_CYAN,0), xpfCOL(attrRESET,0), TickLastRun, TickNow, TickNextRun);
 }
