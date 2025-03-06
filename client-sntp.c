@@ -181,5 +181,5 @@ void vSntpStart(void * pTStamp) {
 }
 
 int xSntpReport(report_t * psR) {
-	return wprintfx(psR, "%CSNTP_C%C\tLast=%lu  Now=%lu  Next=%lu" strNL,xpfCOL(colourFG_CYAN,0), xpfCOL(attrRESET,0), TickLastRun, TickNow, TickNextRun);
+	return wprintfx(psR, "%CSNTP_C%C\tLast=%lu  Now=%lu  Next=%lu" strNL,xpfCOL(colourFG_CYAN,0), xpfCOL(attrRESET,0), TickLastRun/configTICK_RATE_HZ, TickNow/configTICK_RATE_HZ, TickNextRun/configTICK_RATE_HZ);
 }
