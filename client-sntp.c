@@ -137,6 +137,7 @@ static void vSntpTask(void * pTStamp) {
 			// Houston, we have updated time...
 			TimeNew = tNTP[0] + tRTD + tOFF;			// save the new time
 			halRTC_SetTime(*(u64_t*)pTStamp = TimeNew);	// Immediately make available for use
+			halEventUpdateStatus(flagNET_SNTP, 1);
 			SL_NOT("%s(%#-I)  %.6R  Adj=%!.6R", caHostName, sNtpCtx.sa_in.sin_addr.s_addr, TimeNew, tOFF - tRTD);
 		}
 		{	// generate debug output
