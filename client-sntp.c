@@ -94,7 +94,7 @@ static void vSntpTask(void * pTStamp) {
 	netx_t sNtpCtx = { 0 };
 	sNtpCtx.sa_in.sin_family = AF_INET;
 	sNtpCtx.sa_in.sin_port = htons(IP_PORT_NTP);
-	sNtpCtx.type = SOCK_DGRAM;
+	sNtpCtx.c.type = SOCK_DGRAM;
 	sNtpCtx.flags = SO_REUSEADDR;
 
 	halEventUpdateRunTasks(0, 1);
