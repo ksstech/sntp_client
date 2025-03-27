@@ -4,7 +4,7 @@
 
 #include "client-sntp.h"
 #include "hal_rtc.h"
-#include "printfx.h"									// +x_definitions +stdarg +stdint +stdio
+#include "report.h"									// +x_definitions +stdarg +stdint +stdio
 #include "socketsX.h"
 #include "syslog.h"
 #include "errors_events.h"
