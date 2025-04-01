@@ -76,7 +76,7 @@ int	xNtpRequestInfo(netx_t * psNtpCtx, u64_t * pTStamp) {
 	if ((sNtpBuf.Mode != specNTP_MODE_SERVER) || 		/* Invalid mode */
 		(sNtpBuf.VN != specNTP_VERSION_V4) ||			/* Invalid version */
 		OUTSIDE(specNTP_STRATUM_PRI, sNtpBuf.Stratum, specNTP_STRATUM_SEC_HI)) {	/* Stratum out of range */
-		SL_ERR("Host=%s (%#-I) Mode=%d  Ver=%d  Stratum=1/%d/15", psNtpCtx->pHost,
+		SL_NOT("Host=%s (%#-I) Mode=%d  Ver=%d  Stratum=1/%d/15", psNtpCtx->pHost,
 			psNtpCtx->sa_in.sin_addr.s_addr, sNtpBuf.Mode, sNtpBuf.VN, sNtpBuf.Stratum);
    		return erFAILURE;
    	}
