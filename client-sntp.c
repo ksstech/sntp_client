@@ -146,21 +146,21 @@ static void vSntpTask(void * pTStamp) {
 			const char * const Mode_mess[] = { "Unspec", "SymAct", "SymPas", "Client", "Server", "BCast", "RsvdNTP", "RsvdPriv" };
 			const char * const Strat_mess[] = { "KofD", "Prim", "Sec", "UnSync" , "Rsvd" };
 			// Display the header info
-			wprintfx(psR, "[NTP] LI[%s] V[%u] Mode[%s] Stratum[%s] Poll[%.1fs] Precision[%fuS]" strNL,
+			PX("[NTP] LI[%s] V[%u] Mode[%s] Stratum[%s] Poll[%.1fs] Precision[%fuS]" strNL,
 				LI_mess[sNtpBuf.LI], sNtpBuf.VN, Mode_mess[sNtpBuf.Mode], Strat_mess[STRATUM_IDX(sNtpBuf.Stratum)],
 				pow(2, (double) sNtpBuf.Poll), pow(2, (double) sNtpBuf.Precision) * 1000000);
-			wprintfx(NULL, "[NTP] Root Delay[%d.%04d Sec]" strNL, ntohs(sNtpBuf.RDelUnit), ntohs(sNtpBuf.RDelFrac) / (UINT16_MAX/10000));
-			wprintfx(NULL, "[NTP] Dispersion[%u.%04u Sec]" strNL, ntohs(sNtpBuf.RDisUnit), ntohs(sNtpBuf.RDisFrac) / (UINT16_MAX/10000));
+			PX("[NTP] Root Delay[%d.%04d Sec]" strNL, ntohs(sNtpBuf.RDelUnit), ntohs(sNtpBuf.RDelFrac) / (UINT16_MAX/10000));
+			PX("[NTP] Dispersion[%u.%04u Sec]" strNL, ntohs(sNtpBuf.RDisUnit), ntohs(sNtpBuf.RDisFrac) / (UINT16_MAX/10000));
 			if (sNtpBuf.Stratum <= specNTP_STRATUM_PRI)
-				wprintfx(NULL, "[NTP] Ref ID[%4s]" strNL, &sNtpBuf.RefID);
+				PX("[NTP] Ref ID[%4s]" strNL, &sNtpBuf.RefID);
 			else
-				wprintfx(NULL, "[NTP] Ref IP[%-I]" strNL, sNtpBuf.RefIP);
+				PX("[NTP] Ref IP[%-I]" strNL, sNtpBuf.RefIP);
 			// determine and display the reference timestamp
-			wprintfx(NULL, "[NTP] Ref: %.6R" strNL, xNTPCalcValue(sNtpBuf.Ref.secs, sNtpBuf.Ref.frac));
-			wprintfx(NULL, "[NTP] (t0) %.6R" strNL, tNTP[0]);
-			wprintfx(NULL, "[NTP] (t1) %.6R" strNL, tNTP[1]);
-			wprintfx(NULL, "[NTP] (t2) %.6R" strNL, tNTP[2]);
-			wprintfx(NULL, "[NTP] (t3) %.6R" strNL, tNTP[3]);
+			PX("[NTP] Ref: %.6R" strNL, xNTPCalcValue(sNtpBuf.Ref.secs, sNtpBuf.Ref.frac));
+			PX("[NTP] (t0) %.6R" strNL, tNTP[0]);
+			PX("[NTP] (t1) %.6R" strNL, tNTP[1]);
+			PX("[NTP] (t2) %.6R" strNL, tNTP[2]);
+			PX("[NTP] (t3) %.6R" strNL, tNTP[3]);
 		#endif
 		}
 	}
