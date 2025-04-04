@@ -37,7 +37,7 @@ ntp_t sNtpBuf;
 u64_t TimeOld, TimeNew;
 i64_t tRTD, tOFF;
 int NtpHostIndex = 0;
-static TickType_t TickNow = 0, TickLastRun = 0, TickNextRun = 0;
+static volatile TickType_t sntpNow = 0, sntpLast = 0, sntpNext = 0;
 
 /**
  * @brief	convert NTP epoch NETWORK seconds/fractions to UNIX epoch HOST microseconds
@@ -99,15 +99,17 @@ static void vSntpTask(void * pTStamp) {
 
 	halEventUpdateRunTasks(0, 1);
 	while (halEventWaitTasksOK(0, portMAX_DELAY)) {
+		// check for LXsta, if not ready wait sntpMS_RETRY (a minute) for it to become ready
 		if (halEventWaitStatus(flagLX_STA, pdMS_TO_TICKS(sntpMS_RETRY)) == 0)
 			continue;
-		TickNow = xTaskGetTickCount();					// single reference time for update timing
-		if (TickNow < TickNextRun) {
-			vTaskDelay(pdMS_TO_TICKS(sntpMS_CHECK));
-			continue;
+		// if LXsta ready, get current tick count
+		sntpNow = xTaskGetTickCount();					// single reference time for update timing
+		if (sntpNow < sntpNext) {						// time for next SNTP update (normally an hour) ?
+			vTaskDelay(pdMS_TO_TICKS(sntpMS_CHECK));	// no, wait for sntpMS_CHECK (normally 1 minute)
+			continue;									// then go restart at top again...
 		}
-		TickLastRun = TickNow;
-		TickNextRun = TickLastRun + pdMS_TO_TICKS(sntpMS_REFRESH);
+		sntpLast = sntpNow;								// at last time to resync SNTP again....
+		sntpNext = sntpLast + pdMS_TO_TICKS(sntpMS_REFRESH);
 		do {
 			iRV = 0;
 			snprintfx(caHostName, sizeof(caHostName), sNVSvars.GeoCode[0] ? "%d.%>s.pool.ntp.org" : "%d.pool.ntp.org", NtpHostIndex, sNVSvars.GeoCode);
@@ -182,5 +184,5 @@ void vSntpStart(void * pTStamp) {
 }
 
 int xSntpReport(report_t * psR) {
-	return report(psR, "%CSNTP_C%C\tLast=%lu  Now=%lu  Next=%lu" strNL,xpfCOL(colourFG_CYAN,0), xpfCOL(attrRESET,0), TickLastRun/configTICK_RATE_HZ, TickNow/configTICK_RATE_HZ, TickNextRun/configTICK_RATE_HZ);
+	return report(psR, "%CSNTP_C%C\tLast=%lu  Now=%lu  Next=%lu" strNL,xpfCOL(colourFG_CYAN,0), xpfCOL(attrRESET,0), sntpLast/configTICK_RATE_HZ, sntpNow/configTICK_RATE_HZ, sntpNext/configTICK_RATE_HZ);
 }
