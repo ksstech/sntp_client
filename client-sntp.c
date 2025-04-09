@@ -97,8 +97,8 @@ static void vSntpTask(void * pTStamp) {
 	sNtpCtx.c.type = SOCK_DGRAM;
 	sNtpCtx.flags = SO_REUSEADDR;
 
-	halEventUpdateRunTasks(0, 1);
-	while (halEventWaitTasksOK(0, portMAX_DELAY)) {
+	halEventUpdateRunTasks(taskSNTP_MASK, 1);
+	while (halEventWaitTasksOK(taskSNTP_MASK, portMAX_DELAY)) {
 		// check for LXsta, if not ready wait sntpMS_RETRY (a minute) for it to become ready
 		if (halEventWaitStatus(flagLX_STA, pdMS_TO_TICKS(sntpMS_RETRY)) == 0)
 			continue;

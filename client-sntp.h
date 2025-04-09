@@ -36,7 +36,17 @@ enum {
 	specNTP_STRATUM_RESERVED_HI		= 255,
 };
 
-// #################################### NTP packet structures ######################################
+// ######################################## enumerations ###########################################
+
+// ######################################### structures ############################################
+
+typedef void (* client_sntp_cb)(u64_t);
+
+typedef struct param_sntp_t {
+    client_sntp_cb sntp_cb;
+    TickType_t TickRefresh;
+    u64_t * pTStamp;
+} param_sntp_t;
 
 typedef union { u64_t val; struct { u32_t secs; u32_t frac; }; } ntp_ts_t;
 
@@ -109,7 +119,7 @@ typedef	struct __attribute__((__packed__)) {
  * @brief		Update current UTC time using SNTP protocol
  * @param[in]	pTStamp pointer to u64_t time value to be updated
  */
-void vSntpStart(void * pTStamp);
+void vSntpStart(void * psPara);
 
 /**
  * @brief		generate report on SNTP client timing status
