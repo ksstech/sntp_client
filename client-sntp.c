@@ -87,7 +87,7 @@ exit:
 /**
  * @brief	Starts the SNTP task
  */
-static void vSntpTask(void * pTStamp) {
+static void vSntpTask(void * psPara) {
 	int iRV;
 	u64_t tNTP[3];
 	char caHostName[24];
@@ -109,14 +109,14 @@ static void vSntpTask(void * pTStamp) {
 			continue;									// then go restart at top again...
 		}
 		sntpLast = sntpNow;								// at last time to resync SNTP again....
-		sntpNext = sntpLast + pdMS_TO_TICKS(sntpMS_REFRESH);
+		sntpNext = sntpLast + ((param_sntp_t *) psPara)->TickRefresh;
 		do {
 			iRV = 0;
 			snprintfx(caHostName, sizeof(caHostName), sNVSvars.GeoCode[0] ? "%d.%>s.pool.ntp.org" : "%d.pool.ntp.org", NtpHostIndex, sNVSvars.GeoCode);
 			sNtpCtx.pHost = caHostName;					/* Select NTP host */
 			iRV = xNetOpen(&sNtpCtx);					/* Connect to selected host */
 			if (iRV > erFAILURE)						/* If connected request SNTP info */
-				iRV = xNtpRequestInfo(&sNtpCtx, pTStamp);
+				iRV = xNtpRequestInfo(&sNtpCtx, ((param_sntp_t *) psPara)->pTStamp);
 			xNetClose(&sNtpCtx);						/* close the session */
 			if (iRV != sizeof(ntp_t)) {					/* invalid packet received, delay then step to next host */
 				vTaskDelay(pdMS_TO_TICKS(sntpMS_RETRY));
@@ -138,8 +138,7 @@ static void vSntpTask(void * pTStamp) {
 			tOFF = (tT0 + tT1) / 2;
 			// Houston, we have updated time...
 			TimeNew = tNTP[0] + tRTD + tOFF;			// save the new time
-			halRTC_SetTime(*(u64_t*)pTStamp = TimeNew);	// Immediately make available for use
-			halEventUpdateStatus(flagNET_SNTP, 1);
+            ((param_sntp_t *) psPara)->sntp_cb(TimeNew);
 			SL_NOT("%s(%#-I)  %.6R  Adj=%!.6R", caHostName, sNtpCtx.sa_in.sin_addr.s_addr, TimeNew, tOFF - tRTD);
 		}
 		{	// generate debug output
@@ -169,7 +168,7 @@ static void vSntpTask(void * pTStamp) {
 	vTaskDelete(NULL);
 }
 
-void vSntpStart(void * pTStamp) {
+void vSntpStart(void * pvPara) {
 	const task_param_t sSntpParam = {
 		.pxTaskCode = vSntpTask,
 		.pcName = "sntp",
@@ -180,7 +179,7 @@ void vSntpStart(void * pTStamp) {
 		.xCoreID = tskNO_AFFINITY,
 		.xMask = taskSNTP_MASK,
 	};
-	xTaskCreateWithMask(&sSntpParam, pTStamp); 
+	xTaskCreateWithMask(&sSntpParam, pvPara); 
 }
 
 int xSntpReport(report_t * psR) {
