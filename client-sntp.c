@@ -4,7 +4,6 @@
 
 #include "client-sntp.h"
 #include "hal_rtc.h"
-#include "report.h"									// +x_definitions +stdarg +stdint +stdio
 #include "socketsX.h"
 #include "syslog.h"
 #include "errors_events.h"
@@ -183,5 +182,5 @@ void vSntpStart(void * pvPara) {
 }
 
 int xSntpReport(report_t * psR) {
-	return report(psR, "%CSNTP_C%C\tLast=%lu  Now=%lu  Next=%lu" strNL,xpfCOL(colourFG_CYAN,0), xpfCOL(attrRESET,0), sntpLast/configTICK_RATE_HZ, sntpNow/configTICK_RATE_HZ, sntpNext/configTICK_RATE_HZ);
+	return xReport(psR, "%CSNTP_C%C\tLast=%lu  Now=%lu  Next=%lu" strNL,xpfCOL(colourFG_CYAN,0), xpfCOL(attrRESET,0), sntpLast/configTICK_RATE_HZ, sntpNow/configTICK_RATE_HZ, sntpNext/configTICK_RATE_HZ);
 }
