@@ -182,5 +182,6 @@ void vSntpStart(void * pvPara) {
 }
 
 int xSntpReport(report_t * psR) {
-	return xReport(psR, "%CSNTP_C%C\tLast=%lu  Now=%lu  Next=%lu" strNL,xpfCOL(colourFG_CYAN,0), xpfCOL(attrRESET,0), sntpLast/configTICK_RATE_HZ, sntpNow/configTICK_RATE_HZ, sntpNext/configTICK_RATE_HZ);
+	return xReport(psR, "%CSNTP_C%C\tLast=%lu  Now=%lu  Next=%lu" strNL,xpfCOL(colourFG_CYAN,0), xpfCOL(attrRESET,0),
+						sntpLast / configTICK_RATE_HZ, sntpNow / configTICK_RATE_HZ, sntpNext / configTICK_RATE_HZ);
 }
