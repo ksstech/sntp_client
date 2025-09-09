@@ -33,7 +33,7 @@ StaticTask_t ttsSNTP = { 0 };
 StackType_t tsbSNTP[sntpSTACK_SIZE] = { 0 };
 
 ntp_t sNtpBuf;
-u64_t TimeOld, TimeNew;
+u64_t TimeOld;
 i64_t tRTD, tOFF;
 int NtpHostIndex = 0;
 static volatile TickType_t sntpNow = 0, sntpLast = 0, sntpNext = 0;
@@ -85,6 +85,7 @@ exit:
 
 /**
  * @brief	Starts the SNTP task
+ * @param	psPara pointer to param_sntp_t structure
  */
 static void vSntpTask(void * psPara) {
 	int iRV;
@@ -136,9 +137,10 @@ static void vSntpTask(void * psPara) {
 			tT1 = tNTP[2] - TimeOld;
 			tOFF = (tT0 + tT1) / 2;
 			// Houston, we have updated time...
-			TimeNew = tNTP[0] + tRTD + tOFF;			// save the new time
-            ((param_sntp_t *) psPara)->sntp_cb(TimeNew);
-			SL_NOT("%s(%#-I)  %.6R  Adj=%!.6R", caHostName, sNtpCtx.sa_in.sin_addr.s_addr, TimeNew, tOFF - tRTD);
+			*((param_sntp_t *) psPara)->pTStamp = tNTP[0] + tRTD + tOFF;	// immediately update primary time location
+			if (((param_sntp_t *) psPara)->sntp_cb)
+				((param_sntp_t *) psPara)->sntp_cb();	// update MCU, external RTC and flags
+			SL_NOT("%s(%#-I)  %.6R  Adj=%!.6R", caHostName, sNtpCtx.sa_in.sin_addr.s_addr, *((param_sntp_t *) psPara)->pTStamp, tOFF - tRTD);
 		}
 		{	// generate debug output
 		#if debugSTATS

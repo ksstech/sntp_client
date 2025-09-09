@@ -40,7 +40,7 @@ enum {
 
 // ######################################### structures ############################################
 
-typedef void (* client_sntp_cb)(u64_t);
+typedef void (* client_sntp_cb)(void);
 
 typedef struct param_sntp_t {
     client_sntp_cb sntp_cb;
